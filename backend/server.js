@@ -2,7 +2,6 @@
 require('dotenv').config();
 
 const express = require('express');
-const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const morgan = require('morgan');
@@ -33,22 +32,38 @@ morgan.token('real-ip', (req) => req.headers['x-forwarded-for'] || req.ip);
 app.use(morgan('combined', { stream: accessLogStream }));
 app.use(morgan(':real-ip :method :url :status :response-time ms'));
 
-// ---- CORS ----
-const allowedOrigins = (process.env.CORS_ORIGINS || 'http://localhost:5173,http://localhost:3000')
+// ---- CORS (manual: same-origin always trusted, allow-list for extras) ----
+// The Express app serves BOTH the frontend and the API from one host, so any
+// Origin matching the serving Host is same-origin and must never be blocked.
+// The env allow-list covers genuinely external clients, if any appear later.
+const allowedOrigins = (process.env.CORS_ORIGINS || '')
   .split(',')
   .map((o) => o.trim())
   .filter(Boolean);
-app.use(
-  cors({
-    origin(origin, cb) {
-      if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
-      cb(new Error('Not allowed by CORS'));
-    },
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
-  })
-);
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+
+  if (!origin) return next(); // same-origin navigations/GETs often omit it
+
+  const originHost = origin.replace(/^https?:\/\//, '').replace(/\/+$/, '');
+  const host = req.headers.host || '';
+  const isSameOrigin = originHost === host || originHost === `www.${host}`;
+  const isAllowed = allowedOrigins.includes(origin);
+
+  if (!isSameOrigin && !isAllowed) {
+    return next(new Error('Not allowed by CORS'));
+  }
+
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Vary', 'Origin');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
 
 // ---- Rate limiting ----
 app.use(
