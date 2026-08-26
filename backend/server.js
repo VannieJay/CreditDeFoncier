@@ -134,21 +134,24 @@ async function seedIfEmpty() {
   console.log('Seeded development users');
 }
 
+// Listen immediately so health checks pass even while the DB connects.
+app.listen(port, () => {
+  console.log(`Server running on http://localhost:${port}`);
+});
+
 async function start() {
   try {
     await initDb();
     await seedIfEmpty();
+    console.log('Database ready');
   } catch (err) {
     console.error('Database initialization failed:', err.message);
     if (process.env.NODE_ENV === 'production') {
-      console.error('Refusing to start in production without a database connection.');
+      console.error('Exiting: production requires a database connection.');
       process.exit(1);
     }
-    console.warn('Development mode: serving static frontend; API routes will error until the database is reachable.');
+    console.warn('Development mode: static frontend served; API routes will error until the database is reachable.');
   }
-  app.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
-  });
 }
 
 start();
