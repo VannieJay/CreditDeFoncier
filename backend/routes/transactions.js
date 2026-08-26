@@ -29,27 +29,38 @@ router.post('/transfer', authenticate, transferValidation, handleValidation, asy
     }
 
     const available = await assetService.getAvailableBalance(req.user.id, asset);
-    const fee = parseFloat(assetInfo.fee);
-    const totalRequired = amount + fee;
 
-    if (available < totalRequired) {
+    if (available < amount) {
       return res.status(400).json({
         error: 'Insufficient balance',
-        required: totalRequired.toFixed(6),
+        required: amount.toFixed(6),
         available: available.toFixed(6),
       });
     }
 
     const usdValue = amount * parseFloat(assetInfo.price);
+    const fee = parseFloat(assetInfo.fee);
 
-    const tx = await transactionService.createTransaction({
-      userId: req.user.id,
-      assetSymbol: asset,
-      amount,
-      address,
-      usdValue,
-      fee,
-    });
+    // Debit atomically first (guards against concurrent overdrafts),
+    // compensate (credit back) if the ledger write fails.
+    // Note: fee is USD-denominated metadata on the ledger row, not deducted
+    // from the asset-unit balance.
+    await assetService.debitBalance(req.user.id, asset, amount);
+
+    let tx;
+    try {
+      tx = await transactionService.createTransaction({
+        userId: req.user.id,
+        assetSymbol: asset,
+        amount,
+        address,
+        usdValue,
+        fee,
+      });
+    } catch (ledgerErr) {
+      await assetService.creditBalance(req.user.id, asset, amount);
+      throw ledgerErr;
+    }
 
     res.status(201).json({
       transaction: {

@@ -64,6 +64,26 @@ async function debitBalance(userId, symbol, amount) {
   }
 }
 
+async function creditBalance(userId, symbol, amount) {
+  const { rows } = await pool.query(
+    `UPDATE holdings
+        SET balance = balance + $1
+      WHERE user_id = $2 AND asset_symbol = $3
+      RETURNING balance`,
+    [amount, userId, symbol]
+  );
+  if (rows.length === 0) {
+    // No holding row yet - create one.
+    await pool.query(
+      `INSERT INTO holdings (user_id, asset_symbol, balance)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (user_id, asset_symbol) DO UPDATE SET balance = holdings.balance + $3`,
+      [userId, symbol, amount]
+    );
+  }
+  return rows[0] || null;
+}
+
 module.exports = {
   getAssets,
   getAssetBySymbol,
@@ -71,4 +91,5 @@ module.exports = {
   getHolding,
   getAvailableBalance,
   debitBalance,
+  creditBalance,
 };

@@ -1,3 +1,6 @@
+// Load environment BEFORE any module that reads process.env (db pool config).
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -97,14 +100,19 @@ app.use((req, res, next) => {
 // Error handler
 app.use((err, req, res, _next) => {
   console.error('Unhandled error:', err);
-  if (err.code === 'INSUFFICIENT_BALANCE') {
+  if (err.code === 'INSUFFICIENT_BALANCE' || err.message === 'INSUFFICIENT_BALANCE') {
     return res.status(400).json({ error: 'Insufficient balance' });
   }
   if (err.message === 'Not allowed by CORS') {
     return res.status(403).json({ error: 'Origin not allowed' });
   }
+  // AggregateError (e.g. multi-stack ECONNREFUSED) has an empty message.
+  let message = err.message;
+  if ((!message || message.trim() === '') && Array.isArray(err.errors) && err.errors.length) {
+    message = err.errors[0].message;
+  }
   res.status(err.status || 500).json({
-    error: process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message,
+    error: process.env.NODE_ENV === 'production' ? 'Internal server error' : (message || 'Internal server error'),
   });
 });
 
