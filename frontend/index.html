@@ -1,0 +1,1524 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#09090B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Credit De Foncier — Institutional Portal</title>
+
+<!-- Hexagon Vault Favicon -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 5 L90 27.5 L90 72.5 L50 95 L10 72.5 L10 27.5 Z' fill='%2309090B' stroke='%23CCFF00' stroke-width='5'/%3E%3Cpath d='M60 35 A18 18 0 1 0 60 65' fill='none' stroke='%23CCFF00' stroke-width='6' stroke-linecap='round'/%3E%3Cpath d='M45 40 L45 60 M45 43 L55 43 M45 50 L53 50' fill='none' stroke='%23CCFF00' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="manifest" href='data:application/manifest+json,{"name":"Credit De Foncier","short_name":"CDF","start_url":".","display":"standalone","background_color":"#09090B","theme_color":"#09090B"}'>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+  :root {
+    --bg-base: #FAFAFA;
+    --bg-elev: #FFFFFF;
+    --bg-elev-2: #F4F4F5;
+    --border: #E4E4E7;
+    --text-primary: #09090B;
+    --text-secondary: #3F3F46;
+    --text-muted: #71717A;
+    --accent: #18181B;
+    --highlight: #CCFF00;
+    --highlight-text: #09090B;
+    --success: #10B981;
+    --warning: #F59E0B;
+    --danger: #EF4444;
+  }
+
+  html.dark {
+    --bg-base: #09090B;
+    --bg-elev: #18181B;
+    --bg-elev-2: #1F1F23;
+    --border: #27272A;
+    --text-primary: #FAFAFA;
+    --text-secondary: #D4D4D8;
+    --text-muted: #71717A;
+    --accent: #FAFAFA;
+  }
+
+  * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+  body {
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    overflow-x: hidden;
+    min-height: 100vh;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+
+  .font-display { font-family: 'Space Grotesk', sans-serif; }
+  .font-mono { font-family: 'Space Grotesk', monospace; font-variant-numeric: tabular-nums; }
+  .tabular { font-variant-numeric: tabular-nums; }
+
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .card {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+
+  .btn {
+    transition: transform 0.1s ease, background 0.2s ease, color 0.2s ease;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    user-select: none;
+    font-size: 14px;
+  }
+  .btn:active { transform: translateY(1px) scale(0.98); }
+  
+  .btn-primary {
+    background: var(--highlight);
+    color: var(--highlight-text);
+  }
+  .btn-primary:active { background: #b3e600; }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn-secondary {
+    background: var(--bg-elev-2);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:active { background: var(--border); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-secondary);
+  }
+  .btn-ghost:hover { background: var(--bg-elev-2); color: var(--text-primary); }
+
+  .input-field {
+    background: var(--bg-elev-2);
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 14px 16px;
+    color: var(--text-primary);
+    width: 100%;
+    transition: all 0.2s ease;
+    font-size: 15px;
+  }
+  .input-field:focus {
+    outline: none;
+    border-color: var(--highlight);
+    background: var(--bg-elev);
+  }
+  .input-field::placeholder { color: var(--text-muted); }
+
+  .auth-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    min-height: 100vh;
+  }
+  @media (min-width: 1024px) {
+    .auth-layout { grid-template-columns: 1fr 1fr; }
+  }
+
+  .auth-visuals {
+    background: #09090B;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+    padding: 48px;
+  }
+  
+  .bg-grid {
+    position: absolute;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  .bg-glow {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(204,255,0,0.08) 0%, transparent 70%);
+    top: -200px;
+    right: -200px;
+    filter: blur(60px);
+  }
+
+  .app-layout {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+  }
+  .sidebar {
+    width: 260px;
+    border-right: 1px solid var(--border);
+    background: var(--bg-elev);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 30;
+    transition: transform 0.3s ease;
+  }
+  .main-content {
+    flex: 1;
+    margin-left: 260px;
+    padding: 32px;
+    max-width: 1400px;
+    position: relative;
+    z-index: 10;
+  }
+  @media (max-width: 1023px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); box-shadow: 0 0 40px rgba(0,0,0,0.2); }
+    .main-content { margin-left: 0; padding: 16px; padding-bottom: 80px; }
+  }
+
+  /* Watermark */
+  .watermark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.03;
+  }
+  html.dark .watermark { opacity: 0.04; }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    color: var(--text-muted);
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 4px;
+  }
+  .nav-item:hover { background: var(--bg-elev-2); color: var(--text-primary); }
+  .nav-item:active { transform: scale(0.98); }
+  .nav-item.active { background: var(--bg-elev-2); color: var(--text-primary); }
+  .nav-item.active i { color: var(--highlight); }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUp { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  @keyframes scaleIn { from { transform: scale(0.96); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+  @keyframes drawPath { to { stroke-dashoffset: 0; } }
+
+  .anim-fade { animation: fadeIn 0.3s ease forwards; }
+  .anim-slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  .anim-scale-in { animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+  .modal-backdrop {
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+  }
+
+  .toast {
+    animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1), fadeOut 0.3s 2.7s forwards;
+  }
+  @keyframes slideInRight { from { transform: translateX(120%); } to { transform: translateX(0); } }
+  @keyframes fadeOut { to { opacity: 0; transform: translateX(20%); } }
+
+  .chart-bar {
+    background: var(--bg-elev-2);
+    width: 100%;
+    border-radius: 4px 4px 0 0;
+    position: relative;
+    transition: height 0.5s ease;
+  }
+  .chart-bar::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: var(--val);
+    background: var(--text-primary);
+    border-radius: 4px 4px 0 0;
+  }
+  
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .status-success { background: var(--success); }
+  .status-pending { background: var(--warning); }
+  
+  .step-circle {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.3s ease;
+  }
+  .step-circle.active { border-color: var(--highlight); background: rgba(204, 255, 0, 0.1); }
+  .step-circle.complete { background: var(--highlight); border-color: var(--highlight); }
+  
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 40;
+    background: var(--bg-elev);
+    border-top: 1px solid var(--border);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .bottom-nav button {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 2px; padding: 10px;
+    color: var(--text-muted);
+    transition: color 0.2s;
+  }
+  .bottom-nav button.active { color: var(--text-primary); }
+
+  /* SVG Logo Animation */
+  .logo-svg path {
+    stroke-dasharray: 400;
+    stroke-dashoffset: 400;
+  }
+  .logo-svg.animated path {
+    animation: drawPath 1.5s ease-out forwards;
+  }
+  .logo-svg.animated path:nth-child(2) { animation-delay: 0.2s; }
+  .logo-svg.animated path:nth-child(3) { animation-delay: 0.4s; }
+  .logo-svg.animated path:nth-child(4) { animation-delay: 0.6s; }
+  .logo-svg.animated path:nth-child(5) { animation-delay: 0.8s; }
+
+</style>
+</head>
+<body>
+
+<!-- ============ SPLASH SCREEN ============ -->
+<div id="splashScreen" class="fixed inset-0 z-[100] bg-[#09090B] flex items-center justify-center transition-opacity duration-500">
+  <div class="text-center">
+    
+    <!-- Large Animated Hexagon Vault Logo -->
+    <div class="flex justify-center mb-10">
+      <svg class="logo-svg animated" width="120" height="120" viewBox="0 0 100 100" fill="none">
+        <!-- Outer Hexagon (Crypto Block/Vault) -->
+        <path d="M50 5 L90 27.5 L90 72.5 L50 95 L10 72.5 L10 27.5 Z" stroke="#CCFF00" stroke-width="2" stroke-linejoin="round"/>
+        <!-- Inner Hexagon Frame -->
+        <path d="M50 15 L80 32.5 L80 67.5 L50 85 L20 67.5 L20 32.5 Z" stroke="#CCFF00" stroke-width="1.5" stroke-linejoin="round" opacity="0.5"/>
+        <!-- The C Arc -->
+        <path d="M62 35 A20 20 0 1 0 62 65" stroke="#CCFF00" stroke-width="5" stroke-linecap="round"/>
+        <!-- The F Lines -->
+        <path d="M42 38 L42 62 M42 42 L54 42 M42 50 L52 50" stroke="#CCFF00" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    
+    <div class="font-display text-2xl font-bold text-white tracking-tight">CREDIT DE FONCIER</div>
+    <div class="text-zinc-500 text-xs tracking-[0.2em] uppercase mt-2 mb-10">Institutional Crypto Finance</div>
+    
+    <div class="w-32 h-1 bg-[#27272A] rounded-full overflow-hidden mx-auto">
+      <div class="h-full bg-[#CCFF00]" style="width: 0%; animation: fillBar 1.5s ease-out forwards"></div>
+    </div>
+    <style>@keyframes fillBar { to { width: 100%; } }</style>
+  </div>
+</div>
+
+<!-- ============ AUTHENTICATION SCREEN ============ -->
+<div id="authScreen" class="auth-layout" style="display: none;">
+  <!-- Visual Side -->
+  <div class="auth-visuals hidden lg:flex">
+    <div class="bg-grid"></div>
+    <div class="bg-glow"></div>
+    
+    <!-- Watermark Background -->
+    <svg class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-[0.04]" width="600" height="600" viewBox="0 0 100 100" fill="none">
+      <path d="M50 5 L90 27.5 L90 72.5 L50 95 L10 72.5 L10 27.5 Z" stroke="#FFFFFF" stroke-width="1"/>
+      <path d="M50 15 L80 32.5 L80 67.5 L50 85 L20 67.5 L20 32.5 Z" stroke="#FFFFFF" stroke-width="0.5"/>
+      <path d="M62 35 A20 20 0 1 0 62 65" stroke="#FFFFFF" stroke-width="2"/>
+      <path d="M42 38 L42 62 M42 42 L54 42 M42 50 L52 50" stroke="#FFFFFF" stroke-width="1.5"/>
+    </svg>
+    
+    <div class="relative z-10">
+      <!-- Medium Static Logo -->
+      <svg class="mb-12" width="56" height="56" viewBox="0 0 100 100" fill="none">
+        <path d="M50 5 L90 27.5 L90 72.5 L50 95 L10 72.5 L10 27.5 Z" stroke="#CCFF00" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M50 15 L80 32.5 L80 67.5 L50 85 L20 67.5 L20 32.5 Z" stroke="#CCFF00" stroke-width="1.5" stroke-linejoin="round" opacity="0.5"/>
+        <path d="M62 35 A20 20 0 1 0 62 65" stroke="#CCFF00" stroke-width="5" stroke-linecap="round"/>
+        <path d="M42 38 L42 62 M42 42 L54 42 M42 50 L52 50" stroke="#CCFF00" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      
+      <h1 class="font-display text-5xl font-bold text-white leading-tight mb-6">
+        Borderless liquidity,<br>
+        <span class="text-[#CCFF00]">institutional grade.</span>
+      </h1>
+      <p class="text-zinc-400 text-lg max-w-md">
+        Access pre-approved credit lines and trade instruments backed by digital assets.
+      </p>
+      
+      <div class="mt-12 grid grid-cols-3 gap-4 max-w-md">
+        <div class="border border-zinc-800 rounded-lg p-3">
+          <div class="text-xs text-zinc-500">Assets Under Mgmt</div>
+          <div class="font-mono text-white font-semibold mt-1">$1.2B+</div>
+        </div>
+        <div class="border border-zinc-800 rounded-lg p-3">
+          <div class="text-xs text-zinc-500">Active Clients</div>
+          <div class="font-mono text-white font-semibold mt-1">3,400</div>
+        </div>
+        <div class="border border-zinc-800 rounded-lg p-3">
+          <div class="text-xs text-zinc-500">Jurisdictions</div>
+          <div class="font-mono text-white font-semibold mt-1">28</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form Side -->
+  <div class="flex items-center justify-center p-6 md:p-12 bg-[var(--bg-base)]">
+    <div class="w-full max-w-sm">
+      <div class="lg:hidden mb-8 flex items-center gap-3">
+        <svg width="36" height="36" viewBox="0 0 100 100" fill="none">
+          <path d="M50 5 L90 27.5 L90 72.5 L50 95 L10 72.5 L10 27.5 Z" stroke="#CCFF00" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M50 15 L80 32.5 L80 67.5 L50 85 L20 67.5 L20 32.5 Z" stroke="#CCFF00" stroke-width="1.5" stroke-linejoin="round" opacity="0.5"/>
+          <path d="M62 35 A20 20 0 1 0 62 65" stroke="#CCFF00" stroke-width="5" stroke-linecap="round"/>
+          <path d="M42 38 L42 62 M42 42 L54 42 M42 50 L52 50" stroke="#CCFF00" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="font-display text-lg font-bold">Credit De Foncier</div>
+      </div>
+
+      <h2 id="authHeading" class="font-display text-2xl font-bold mb-2">Access Portal</h2>
+      <p id="authSubheading" class="text-[var(--text-muted)] mb-8 text-sm">Enter your credentials to continue.</p>
+
+      <div class="flex gap-2 mb-6 p-1 bg-[var(--bg-elev-2)] rounded-lg">
+        <button type="button" id="btnIndividual" class="flex-1 py-2 text-sm font-medium rounded-md transition-all bg-[var(--bg-elev)] shadow-sm">Individual</button>
+        <button type="button" id="btnCorporate" class="flex-1 py-2 text-sm font-medium rounded-md transition-all text-[var(--text-muted)]">Corporate</button>
+      </div>
+
+      <form id="authForm" class="space-y-4">
+        <div>
+          <label class="text-xs font-medium text-[var(--text-muted)] mb-1.5 block uppercase tracking-wider">Email</label>
+          <input id="authEmail" type="email" class="input-field" value="johndoe@examplemail.com" required>
+        </div>
+        <div>
+          <label class="text-xs font-medium text-[var(--text-muted)] mb-1.5 block uppercase tracking-wider">Password</label>
+          <div class="relative">
+            <input id="authPassword" type="password" class="input-field pr-12" value="Password123!" required>
+            <button type="button" id="togglePassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] p-1.5 rounded hover:bg-[var(--border)] transition">
+              <i data-lucide="eye" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+        <button type="submit" id="authSubmitBtn" class="btn btn-primary w-full py-3.5 mt-6">Secure Login</button>
+        <div class="text-center mt-4">
+          <button type="button" id="authModeToggle" class="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition">
+            Don't have an account? <span class="text-[#CCFF00] font-medium">Create one</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MAIN APP SHELL ============ -->
+<div id="appShell" style="display: none;" class="app-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="p-6 border-b border-[var(--border)] flex items-center gap-3">
+      <svg width="32" height="32" viewBox="0 0 100 100" fill="none">
+        <path d="M50 5 L90 27.5 L90 72.5 L50 95 L10 72.5 L10 27.5 Z" stroke="#CCFF00" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M50 15 L80 32.5 L80 67.5 L50 85 L20 67.5 L20 32.5 Z" stroke="#CCFF00" stroke-width="1.5" stroke-linejoin="round" opacity="0.5"/>
+        <path d="M62 35 A20 20 0 1 0 62 65" stroke="#CCFF00" stroke-width="5" stroke-linecap="round"/>
+        <path d="M42 38 L42 62 M42 42 L54 42 M42 50 L52 50" stroke="#CCFF00" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="font-display text-sm font-bold tracking-tight leading-none">
+        CREDIT DE<br>FONCIER
+      </div>
+    </div>
+    
+    <nav class="flex-1 p-4">
+      <div class="text-[10px] uppercase tracking-wider text-[var(--text-muted)] px-4 mb-2 font-semibold">Menu</div>
+      <div class="nav-item active" onclick="navigate('dashboard')">
+        <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+        <span>Dashboard</span>
+      </div>
+      <div class="nav-item" onclick="navigate('transfer')">
+        <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+        <span>Transfer</span>
+      </div>
+      <div class="nav-item" onclick="navigate('profile')">
+        <i data-lucide="user" class="w-4 h-4"></i>
+        <span>Profile</span>
+      </div>
+    </nav>
+
+    <div class="p-4 border-t border-[var(--border)]">
+      <div class="nav-item" onclick="logout()">
+        <i data-lucide="log-out" class="w-4 h-4"></i>
+        <span>Logout</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    
+    <!-- Watermark -->
+    <div class="watermark">
+      <svg width="500" height="500" viewBox="0 0 100 100" fill="none">
+        <path d="M50 5 L90 27.5 L90 72.5 L50 95 L10 72.5 L10 27.5 Z" stroke="currentColor" stroke-width="1"/>
+        <path d="M50 15 L80 32.5 L80 67.5 L50 85 L20 67.5 L20 32.5 Z" stroke="currentColor" stroke-width="0.5"/>
+        <path d="M62 35 A20 20 0 1 0 62 65" stroke="currentColor" stroke-width="2"/>
+        <path d="M42 38 L42 62 M42 42 L54 42 M42 50 L52 50" stroke="currentColor" stroke-width="1.5"/>
+      </svg>
+    </div>
+
+    <!-- Top Bar (Mobile) -->
+    <div class="lg:hidden flex items-center justify-between mb-6 -mx-4 px-4 relative z-10">
+      <button onclick="toggleSidebar()" class="p-2 -ml-2"><i data-lucide="menu" class="w-6 h-6"></i></button>
+      <svg width="28" height="28" viewBox="0 0 100 100" fill="none">
+        <path d="M50 5 L90 27.5 L90 72.5 L50 95 L10 72.5 L10 27.5 Z" stroke="#CCFF00" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M50 15 L80 32.5 L80 67.5 L50 85 L20 67.5 L20 32.5 Z" stroke="#CCFF00" stroke-width="1.5" stroke-linejoin="round" opacity="0.5"/>
+        <path d="M62 35 A20 20 0 1 0 62 65" stroke="#CCFF00" stroke-width="5" stroke-linecap="round"/>
+        <path d="M42 38 L42 62 M42 42 L54 42 M42 50 L52 50" stroke="#CCFF00" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <button onclick="toggleTheme()" class="p-2 -mr-2"><i data-lucide="moon" class="w-5 h-5"></i></button>
+    </div>
+
+    <!-- DASHBOARD VIEW -->
+    <div id="view-dashboard" class="anim-fade relative z-10">
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <h1 class="font-display text-3xl font-bold">Overview</h1>
+          <p id="userWelcome" class="text-sm text-[var(--text-muted)] mt-1">Welcome back, Stratos Maritime</p>
+        </div>
+        <button onclick="toggleTheme()" class="hidden lg:flex btn btn-ghost p-2 rounded-full">
+          <i data-lucide="moon" class="w-5 h-5 hidden dark:block"></i>
+          <i data-lucide="sun" class="w-5 h-5 block dark:hidden"></i>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="card p-5">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs text-[var(--text-muted)] uppercase tracking-wider font-semibold">Available Credit</span>
+            <i data-lucide="credit-card" class="w-4 h-4 text-[var(--text-muted)]"></i>
+          </div>
+          <div id="availableCredit" class="font-display text-3xl font-bold tabular">$3,150,000<span class="text-lg text-[var(--text-muted)]">.00</span></div>
+          <div class="flex items-center gap-2 mt-2 text-xs">
+            <span class="text-[var(--success)] font-medium flex items-center gap-1"><i data-lucide="trending-up" class="w-3 h-3"></i> 12%</span>
+            <span class="text-[var(--text-muted)]">vs last month</span>
+          </div>
+        </div>
+        <div class="card p-5">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs text-[var(--text-muted)] uppercase tracking-wider font-semibold">Total Utilized</span>
+            <i data-lucide="wallet" class="w-4 h-4 text-[var(--text-muted)]"></i>
+          </div>
+          <div id="totalUtilized" class="font-display text-3xl font-bold tabular">$1,850,000<span class="text-lg text-[var(--text-muted)]">.00</span></div>
+          <div class="flex items-center gap-2 mt-2 text-xs">
+            <div class="w-full h-1.5 bg-[var(--bg-elev-2)] rounded-full overflow-hidden">
+              <div id="utilizedBar" class="h-full bg-[#CCFF00]" style="width: 37%"></div>
+            </div>
+            <span id="utilizedPercent" class="text-[var(--text-muted)]">37%</span>
+          </div>
+        </div>
+        <div class="card p-5">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs text-[var(--text-muted)] uppercase tracking-wider font-semibold">Wallet Balance</span>
+            <i data-lucide="layers" class="w-4 h-4 text-[var(--text-muted)]"></i>
+          </div>
+          <div id="walletBalance" class="font-display text-3xl font-bold tabular">$243,157<span class="text-lg text-[var(--text-muted)]">.50</span></div>
+          <div class="flex items-center gap-2 mt-2 text-xs text-[var(--text-muted)]">
+            <span id="walletCurrencies">ETH, BTC, USDT</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 space-y-6">
+          <div class="card p-6">
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="font-display text-xl font-bold">Initiate Transfer</h3>
+              <span class="text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5 font-medium" style="color: #84cc16; background: rgba(132, 204, 22, 0.1); border: 1px solid rgba(132, 204, 22, 0.2);">
+                <span class="status-dot status-success"></span> Active
+              </span>
+            </div>
+
+            <div id="transferForm" class="space-y-5">
+              <div>
+                <label class="text-xs font-medium text-[var(--text-muted)] mb-2 block uppercase tracking-wider">Select Asset</label>
+                <div class="grid grid-cols-3 gap-2">
+                  <button data-asset="ETH" class="asset-btn btn btn-secondary py-3 active">ETH</button>
+                  <button data-asset="BTC" class="asset-btn btn btn-secondary py-3">BTC</button>
+                  <button data-asset="USDT" class="asset-btn btn btn-secondary py-3">USDT</button>
+                </div>
+              </div>
+
+              <div>
+                <label class="text-xs font-medium text-[var(--text-muted)] mb-2 block uppercase tracking-wider">Destination Address</label>
+                <input id="transferAddress" type="text" class="input-field font-mono text-sm" placeholder="0x...">
+                <div id="addressFeedback" class="text-xs mt-2 hidden"></div>
+              </div>
+
+              <div>
+                <label class="text-xs font-medium text-[var(--text-muted)] mb-2 block uppercase tracking-wider">Amount</label>
+                <div class="relative">
+                  <input id="transferAmount" type="number" step="0.0001" class="input-field pr-20 tabular text-lg font-medium" placeholder="0.0000">
+                  <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-3">
+                    <button type="button" id="btnMaxAmount" class="text-xs text-[var(--text-primary)] font-bold hover:opacity-70 transition">MAX</button>
+                    <span class="text-xs text-[var(--text-muted)] font-mono font-medium" id="amountAssetLabel">ETH</span>
+                  </div>
+                </div>
+                <div class="flex justify-between mt-2 text-xs text-[var(--text-muted)]">
+                  <span>≈ $<span id="usdValue">0.00</span></span>
+                  <span>Available: <span id="availBalance" class="tabular text-[var(--text-secondary)]">12.50</span> <span id="availLabel">ETH</span></span>
+                </div>
+              </div>
+
+              <button id="initiateTransferBtn" class="btn btn-primary w-full py-3.5 mt-2" disabled>
+                Continue to Verification
+              </button>
+            </div>
+          </div>
+
+          <div class="card p-6">
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="font-display text-lg font-bold">Volume Activity</h3>
+              <select class="text-xs bg-[var(--bg-elev-2)] border-none rounded-md px-2 py-1 focus:ring-1 focus:ring-[#CCFF00]">
+                <option>Last 7 days</option>
+                <option>Last 30 days</option>
+              </select>
+            </div>
+            <div class="flex items-end justify-between gap-2 h-32">
+              <div class="flex-1 flex flex-col items-center gap-2">
+                <div class="chart-bar h-full" style="--val: 40%"></div>
+                <span class="text-[10px] text-[var(--text-muted)]">M</span>
+              </div>
+              <div class="flex-1 flex flex-col items-center gap-2">
+                <div class="chart-bar h-full" style="--val: 60%"></div>
+                <span class="text-[10px] text-[var(--text-muted)]">T</span>
+              </div>
+              <div class="flex-1 flex flex-col items-center gap-2">
+                <div class="chart-bar h-full" style="--val: 30%"></div>
+                <span class="text-[10px] text-[var(--text-muted)]">W</span>
+              </div>
+              <div class="flex-1 flex flex-col items-center gap-2">
+                <div class="chart-bar h-full" style="--val: 80%"></div>
+                <span class="text-[10px] text-[var(--text-muted)]">T</span>
+              </div>
+              <div class="flex-1 flex flex-col items-center gap-2">
+                <div class="chart-bar h-full" style="--val: 55%"></div>
+                <span class="text-[10px] text-[var(--text-muted)]">F</span>
+              </div>
+              <div class="flex-1 flex flex-col items-center gap-2">
+                <div class="chart-bar h-full" style="--val: 70%"></div>
+                <span class="text-[10px] text-[var(--text-muted)]">S</span>
+              </div>
+              <div class="flex-1 flex flex-col items-center gap-2">
+                <div class="chart-bar h-full" style="--val: 90%; background: #CCFF00;"></div>
+                <span class="text-[10px] text-[var(--text-primary)] font-bold">S</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-6">
+          <div class="card p-6">
+            <h3 class="font-display text-lg font-bold mb-4">Assets</h3>
+            <div id="assetsList" class="space-y-3">
+              <div class="flex items-center justify-between p-2 rounded-lg hover:bg-[var(--bg-elev-2)] transition cursor-pointer">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-full bg-[#627EEA] flex items-center justify-center text-white text-xs font-bold">Ξ</div>
+                  <div>
+                    <div class="font-medium text-sm">Ethereum</div>
+                    <div class="text-xs text-[var(--text-muted)]">ETH</div>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <div class="font-medium text-sm tabular">12.50</div>
+                  <div class="text-xs text-[var(--text-muted)] tabular">$42,950</div>
+                </div>
+              </div>
+              <div class="flex items-center justify-between p-2 rounded-lg hover:bg-[var(--bg-elev-2)] transition cursor-pointer">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-full bg-[#F7931A] flex items-center justify-center text-white text-xs font-bold">₿</div>
+                  <div>
+                    <div class="font-medium text-sm">Bitcoin</div>
+                    <div class="text-xs text-[var(--text-muted)]">BTC</div>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <div class="font-medium text-sm tabular">0.85</div>
+                  <div class="text-xs text-[var(--text-muted)] tabular">$55,207</div>
+                </div>
+              </div>
+              <div class="flex items-center justify-between p-2 rounded-lg hover:bg-[var(--bg-elev-2)] transition cursor-pointer">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-full bg-[#26A17B] flex items-center justify-center text-white text-xs font-bold">₮</div>
+                  <div>
+                    <div class="font-medium text-sm">Tether</div>
+                    <div class="text-xs text-[var(--text-muted)]">USDT</div>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <div class="font-medium text-sm tabular">145,000</div>
+                  <div class="text-xs text-[var(--text-muted)] tabular">$145,000</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card p-6">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-display text-lg font-bold">History</h3>
+              <button class="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition">View all</button>
+            </div>
+            <div id="txList" class="space-y-3"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROFILE VIEW -->
+    <div id="view-profile" class="hidden anim-fade max-w-3xl mx-auto relative z-10">
+      <div class="mb-8">
+        <h1 class="font-display text-3xl font-bold">Profile</h1>
+        <p class="text-sm text-[var(--text-muted)] mt-1">Manage your account and compliance status.</p>
+      </div>
+
+      <div class="card p-8 mb-6">
+        <div class="flex flex-col md:flex-row items-start gap-6">
+          <div id="profileAvatar" class="w-20 h-20 rounded-2xl bg-[var(--bg-elev-2)] flex items-center justify-center text-3xl font-bold font-display">S</div>
+          <div class="flex-1">
+            <h2 id="profileName" class="font-display text-2xl font-bold">Stratos Maritime Ltd</h2>
+            <p id="profileIds" class="text-sm text-[var(--text-muted)] font-mono mt-1">CL-001 · TX-MRD-8F3A92K</p>
+            <div class="flex flex-wrap gap-2 mt-4">
+              <span id="profileRoleBadge" class="px-2.5 py-1 text-xs rounded-md bg-[var(--bg-elev-2)] text-[var(--text-secondary)] font-medium">Corporate</span>
+              <span id="profileTierBadge" class="px-2.5 py-1 text-xs rounded-md bg-[#CCFF00] text-[#09090B] font-medium">Tier 3</span>
+            </div>
+          </div>
+          <button id="btnCopyId" class="btn btn-secondary px-4 py-2"><i data-lucide="copy" class="w-4 h-4"></i> Copy ID</button>
+        </div>
+      </div>
+
+      <div class="card p-8">
+        <h3 class="font-display text-xl font-bold mb-1">Verification Status</h3>
+        <p class="text-sm text-[var(--text-muted)] mb-8">Your compliance level determines access to higher credit limits.</p>
+        
+        <div class="space-y-8">
+          <div class="flex items-start gap-4">
+            <div id="identityStepIcon" class="step-circle complete"><i data-lucide="check" class="w-4 h-4 text-[#09090B]"></i></div>
+            <div class="flex-1">
+              <div class="flex justify-between items-center mb-1">
+                <h4 class="font-semibold">Identity Verification</h4>
+                <span id="identityStatusBadge" class="text-xs font-medium text-[var(--success)] flex items-center gap-1"><span class="status-dot status-success"></span> Verified</span>
+              </div>
+              <p class="text-sm text-[var(--text-muted)]">Government ID &amp; selfie verification completed.</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-4">
+            <div id="businessStepIcon" class="step-circle complete"><i data-lucide="check" class="w-4 h-4 text-[#09090B]"></i></div>
+            <div class="flex-1">
+              <div class="flex justify-between items-center mb-1">
+                <h4 class="font-semibold">Business Registration</h4>
+                <span id="businessStatusBadge" class="text-xs font-medium text-[var(--success)] flex items-center gap-1"><span class="status-dot status-success"></span> Verified</span>
+              </div>
+              <p class="text-sm text-[var(--text-muted)]">Corporate registry &amp; beneficial ownership confirmed.</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-4">
+            <div id="liquidityStepIcon" class="step-circle active"><div class="w-2 h-2 rounded-full bg-[#CCFF00] animate-pulse"></div></div>
+            <div class="flex-1">
+              <div class="flex justify-between items-center mb-1">
+                <h4 class="font-semibold">Liquidity Verification</h4>
+                <span id="liquidityStatusBadge" class="text-xs font-medium text-[var(--warning)] flex items-center gap-1"><span class="status-dot status-pending"></span> In Review</span>
+              </div>
+              <p class="text-sm text-[var(--text-muted)]">Source of funds is under review by our compliance team.</p>
+              <div class="mt-3 w-full h-1 bg-[var(--bg-elev-2)] rounded-full overflow-hidden">
+                <div class="h-full bg-[#CCFF00]" style="width: 80%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ============ SECURE TRANSFER PROTOCOL MODAL ============ -->
+<div id="transferProtocolModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+  <div class="modal-backdrop absolute inset-0" onclick="closeProtocolModal()"></div>
+  <div class="card relative w-full max-w-md p-8 anim-scale-in max-h-[90vh] overflow-y-auto">
+    <button onclick="closeProtocolModal()" class="absolute top-4 right-4 text-[var(--text-muted)] hover:text-[var(--text-primary)] p-2 rounded-lg hover:bg-[var(--bg-elev-2)] transition">
+      <i data-lucide="x" class="w-5 h-5"></i>
+    </button>
+
+    <div class="mb-8">
+      <div id="protocolIcon" class="w-12 h-12 rounded-xl bg-[var(--bg-elev-2)] flex items-center justify-center mb-4">
+        <i data-lucide="shield-check" class="w-6 h-6 text-[#CCFF00]"></i>
+      </div>
+      <h3 id="protocolTitle" class="font-display text-xl font-bold">Secure Transfer Protocol</h3>
+      <p id="protocolDesc" class="text-sm text-[var(--text-muted)] mt-1">Verifying compliance requirements.</p>
+    </div>
+
+    <div id="protocolSteps" class="space-y-5 mb-6"></div>
+    <div id="protocolActionArea" class="hidden bg-[var(--bg-elev-2)] rounded-xl p-5 border border-[var(--border)]"></div>
+  </div>
+</div>
+
+<!-- ============ TOAST CONTAINER ============ -->
+<div id="toastContainer" class="fixed top-6 right-6 z-[60] space-y-2"></div>
+
+<!-- ============ BOTTOM NAV ============ -->
+<nav class="bottom-nav lg:hidden hidden" id="bottomNav">
+  <div class="grid grid-cols-3 h-16">
+    <button data-nav="dashboard" class="nav-btn active"><i data-lucide="layout-dashboard" class="w-5 h-5"></i><span class="text-[10px] font-medium">Dashboard</span></button>
+    <button data-nav="transfer" class="nav-btn"><i data-lucide="arrow-up-right" class="w-5 h-5"></i><span class="text-[10px] font-medium">Transfer</span></button>
+    <button data-nav="profile" class="nav-btn"><i data-lucide="user" class="w-5 h-5"></i><span class="text-[10px] font-medium">Profile</span></button>
+  </div>
+</nav>
+
+<script>
+// ============ CONFIG & STATE ============
+const assetConfig = {
+  ETH: { name: 'Ethereum', fee: 3.42, price: 3436, validate: /^0x[a-fA-F0-9]{40}$/, placeholder: '0x1a2b3c... (40 hex chars)' },
+  BTC: { name: 'Bitcoin', fee: 1.85, price: 64950, validate: /^(1|3|bc1)[a-zA-Z0-9]{24,38}$/, placeholder: 'bc1q... or 1... (25-39 chars)' },
+  USDT: { name: 'Tether TRC-20', fee: 0.85, price: 1, validate: /^T[a-zA-Z0-9]{33}$/, placeholder: 'T... (34 chars total)' }
+};
+
+let transferState = { asset: 'ETH', address: '', amount: 0, stepIndex: 0, pendingTx: null };
+let currentUser = null;
+let currentProfile = null;
+let userHoldings = [];
+let authMode = 'login'; // 'login' | 'register'
+let selectedRole = 'individual'; // 'individual' | 'corporate'
+
+const protocolSteps = [
+  { id: 'bond', name: 'Bond Facilitation Services', desc: 'Initiating primary authorization...', duration: 2500, requiresCode: false },
+  { id: 'pof', name: 'Proof of Funds', desc: 'Verifying liquidity provenance...', requiresCode: true },
+  { id: 'blocked', name: 'Blocked Funds', desc: 'Checking capital escrow status...', requiresCode: true },
+  { id: 'lc', name: 'Letter of Credit', desc: 'Verifying trade instrument...', requiresCode: true },
+  { id: 'apg', name: 'Advance Payment Guarantee', desc: 'Validating guarantee...', requiresCode: true },
+  { id: 'bg', name: 'Bank Guarantee', desc: 'Finalizing institutional clearance...', requiresCode: true }
+];
+
+// ============ API CLIENT ============
+function getAuthToken() {
+  return localStorage.getItem('cdf_token');
+}
+
+function setAuthToken(token) {
+  if (token) localStorage.setItem('cdf_token', token);
+  else localStorage.removeItem('cdf_token');
+}
+
+async function apiFetch(path, options = {}) {
+  const token = getAuthToken();
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+    ...(options.headers || {})
+  };
+
+  try {
+    const res = await fetch(path, { ...options, headers });
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 401) {
+      setAuthToken(null);
+      if (document.getElementById('appShell').style.display !== 'none') {
+        logout();
+        showToast('Session expired. Please log in again.', 'error');
+      }
+      throw new Error(data.error || 'Unauthorized');
+    }
+    if (!res.ok) {
+      throw new Error(data.error || (data.details && data.details[0]?.msg) || `Request failed with status ${res.status}`);
+    }
+    return data;
+  } catch (err) {
+    throw err;
+  }
+}
+
+// ============ TOAST ============
+function showToast(message, type = 'info') {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  const styles = {
+    success: 'bg-[var(--success)] text-white',
+    error: 'bg-[var(--danger)] text-white',
+    info: 'bg-[var(--bg-elev)] text-[var(--text-primary)] border border-[var(--border)]'
+  };
+  const icons = { success: 'check-circle', error: 'x-circle', info: 'info' };
+  toast.className = `toast ${styles[type]} rounded-lg px-4 py-3 text-sm font-medium flex items-center gap-2 shadow-lg`;
+  toast.innerHTML = `<i data-lucide="${icons[type]}" class="w-4 h-4"></i><span>${message}</span>`;
+  container.appendChild(toast);
+  lucide.createIcons();
+  setTimeout(() => toast.remove(), 3500);
+}
+
+// ============ AUTH INITIALIZATION ============
+window.addEventListener('DOMContentLoaded', async () => {
+  const token = getAuthToken();
+  if (token) {
+    try {
+      const res = await apiFetch('/api/auth/me');
+      currentUser = res.user;
+      setTimeout(() => {
+        hideSplash();
+        showApp();
+      }, 1000);
+      return;
+    } catch (err) {
+      setAuthToken(null);
+    }
+  }
+
+  setTimeout(() => {
+    hideSplash();
+    document.getElementById('authScreen').style.display = 'grid';
+    lucide.createIcons();
+  }, 1800);
+});
+
+function hideSplash() {
+  const splash = document.getElementById('splashScreen');
+  if (splash) {
+    splash.style.opacity = '0';
+    splash.style.pointerEvents = 'none';
+    setTimeout(() => { splash.style.display = 'none'; }, 500);
+  }
+}
+
+function showApp() {
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('appShell').style.display = 'flex';
+  document.getElementById('bottomNav').classList.remove('hidden');
+  renderApp();
+}
+
+// ============ AUTH UI TOGGLES ============
+document.getElementById('btnIndividual').addEventListener('click', () => {
+  selectedRole = 'individual';
+  document.getElementById('btnIndividual').classList.add('bg-[var(--bg-elev)]', 'shadow-sm');
+  document.getElementById('btnIndividual').classList.remove('text-[var(--text-muted)]');
+  document.getElementById('btnCorporate').classList.remove('bg-[var(--bg-elev)]', 'shadow-sm');
+  document.getElementById('btnCorporate').classList.add('text-[var(--text-muted)]');
+  if (authMode === 'login') {
+    document.getElementById('authEmail').value = 'johndoe@examplemail.com';
+    document.getElementById('authPassword').value = 'Password123!';
+  }
+});
+
+document.getElementById('btnCorporate').addEventListener('click', () => {
+  selectedRole = 'corporate';
+  document.getElementById('btnCorporate').classList.add('bg-[var(--bg-elev)]', 'shadow-sm');
+  document.getElementById('btnCorporate').classList.remove('text-[var(--text-muted)]');
+  document.getElementById('btnIndividual').classList.remove('bg-[var(--bg-elev)]', 'shadow-sm');
+  document.getElementById('btnIndividual').classList.add('text-[var(--text-muted)]');
+  if (authMode === 'login') {
+    document.getElementById('authEmail').value = 'stratos@maritime.dev';
+    document.getElementById('authPassword').value = 'Password123!';
+  }
+});
+
+const modeToggleBtn = document.getElementById('authModeToggle');
+if (modeToggleBtn) {
+  modeToggleBtn.addEventListener('click', () => {
+    authMode = authMode === 'login' ? 'register' : 'login';
+    const heading = document.getElementById('authHeading');
+    const subheading = document.getElementById('authSubheading');
+    const submitBtn = document.getElementById('authSubmitBtn');
+
+    if (authMode === 'register') {
+      heading.textContent = 'Create Account';
+      subheading.textContent = 'Register an institutional or individual account.';
+      submitBtn.textContent = 'Create Account';
+      modeToggleBtn.innerHTML = 'Already have an account? <span class="text-[#CCFF00] font-medium">Sign in</span>';
+    } else {
+      heading.textContent = 'Access Portal';
+      subheading.textContent = 'Enter your credentials to continue.';
+      submitBtn.textContent = 'Secure Login';
+      modeToggleBtn.innerHTML = "Don't have an account? <span class=" + '"text-[#CCFF00] font-medium">Create one</span>';
+    }
+  });
+}
+
+document.getElementById('togglePassword').addEventListener('click', (e) => {
+  const input = document.getElementById('authPassword');
+  const icon = e.currentTarget.querySelector('i');
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.setAttribute('data-lucide', 'eye-off');
+  } else {
+    input.type = 'password';
+    icon.setAttribute('data-lucide', 'eye');
+  }
+  lucide.createIcons();
+});
+
+document.getElementById('authForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const submitBtn = document.getElementById('authSubmitBtn');
+  const originalText = submitBtn.textContent;
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin inline-block mr-2"></i> Authenticating...';
+  lucide.createIcons();
+
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+
+  try {
+    const endpoint = authMode === 'register' ? '/api/auth/register' : '/api/auth/login';
+    const payload = authMode === 'register'
+      ? { email, password, role: selectedRole }
+      : { email, password };
+
+    const res = await apiFetch(endpoint, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+
+    setAuthToken(res.token);
+    currentUser = res.user;
+
+    showApp();
+    showToast(authMode === 'register' ? 'Account created successfully' : 'Access Granted', 'success');
+  } catch (err) {
+    showToast(err.message || 'Authentication failed', 'error');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = originalText;
+  }
+});
+
+function logout() {
+  setAuthToken(null);
+  currentUser = null;
+  currentProfile = null;
+  userHoldings = [];
+  document.getElementById('appShell').style.display = 'none';
+  document.getElementById('authScreen').style.display = 'grid';
+  document.getElementById('bottomNav').classList.add('hidden');
+}
+
+// ============ THEME & NAV ============
+function toggleTheme() {
+  document.documentElement.classList.toggle('dark');
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+function navigate(view) {
+  document.querySelectorAll('[id^="view-"]').forEach(v => v.classList.add('hidden'));
+  document.getElementById(`view-${view}`).classList.remove('hidden');
+  document.getElementById(`view-${view}`).classList.add('anim-fade');
+  
+  document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+  document.querySelectorAll('.bottom-nav button').forEach(btn => btn.classList.remove('active'));
+  
+  const activeNav = document.querySelector(`.nav-item[onclick="navigate('${view}')"]`);
+  if (activeNav) activeNav.classList.add('active');
+  
+  const activeBottom = document.querySelector(`.bottom-nav button[data-nav="${view}"]`);
+  if (activeBottom) activeBottom.classList.add('active');
+
+  if (view === 'transfer') {
+    document.getElementById('view-dashboard').classList.remove('hidden');
+    document.getElementById('transferForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  
+  document.getElementById('sidebar').classList.remove('open');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+document.querySelectorAll('.bottom-nav button').forEach(btn => {
+  btn.addEventListener('click', () => navigate(btn.dataset.nav));
+});
+
+// ============ TRANSFER LOGIC ============
+document.querySelectorAll('.asset-btn').forEach(btn => {
+  if (btn.dataset.asset === 'ETH') {
+    btn.classList.add('active');
+    btn.style.background = '#CCFF00';
+    btn.style.color = '#09090B';
+    btn.style.borderColor = 'transparent';
+  }
+
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.asset-btn').forEach(b => {
+      b.classList.remove('active');
+      b.style.background = '';
+      b.style.color = '';
+      b.style.borderColor = '';
+    });
+    btn.classList.add('active');
+    btn.style.background = '#CCFF00';
+    btn.style.color = '#09090B';
+    btn.style.borderColor = 'transparent';
+    
+    transferState.asset = btn.dataset.asset;
+    const cfg = assetConfig[transferState.asset];
+    document.getElementById('transferAddress').placeholder = cfg.placeholder;
+    document.getElementById('amountAssetLabel').textContent = transferState.asset;
+    document.getElementById('availLabel').textContent = transferState.asset;
+    updateAvailableTransferBalance();
+    validateTransfer();
+  });
+});
+
+function updateAvailableTransferBalance() {
+  const holding = userHoldings.find(h => h.asset_symbol === transferState.asset);
+  const bal = holding ? parseFloat(holding.balance) : 0;
+  const availEl = document.getElementById('availBalance');
+  if (availEl) {
+    availEl.textContent = bal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+  }
+}
+
+document.getElementById('transferAddress').addEventListener('input', (e) => {
+  transferState.address = e.target.value;
+  validateTransfer();
+});
+
+document.getElementById('transferAmount').addEventListener('input', (e) => {
+  transferState.amount = parseFloat(e.target.value) || 0;
+  const usd = transferState.amount * assetConfig[transferState.asset].price;
+  document.getElementById('usdValue').textContent = usd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  validateTransfer();
+});
+
+const btnMax = document.getElementById('btnMaxAmount');
+if (btnMax) {
+  btnMax.addEventListener('click', () => {
+    const holding = userHoldings.find(h => h.asset_symbol === transferState.asset);
+    const bal = holding ? parseFloat(holding.balance) : 0;
+    const amountInput = document.getElementById('transferAmount');
+    amountInput.value = bal > 0 ? bal : '0';
+    transferState.amount = bal;
+    const usd = bal * assetConfig[transferState.asset].price;
+    document.getElementById('usdValue').textContent = usd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    validateTransfer();
+  });
+}
+
+function validateTransfer() {
+  const cfg = assetConfig[transferState.asset];
+  const feedback = document.getElementById('addressFeedback');
+  const btn = document.getElementById('initiateTransferBtn');
+  const address = transferState.address.trim();
+  
+  if (address && !cfg.validate.test(address)) {
+    feedback.innerHTML = `<span class="text-[var(--danger)] flex items-center gap-1.5"><i data-lucide="alert-circle" class="w-3 h-3"></i> Invalid ${transferState.asset} address format</span>`;
+    feedback.classList.remove('hidden');
+    btn.disabled = true;
+  } else if (address) {
+    feedback.innerHTML = `<span class="text-[var(--success)] flex items-center gap-1.5"><i data-lucide="check-circle" class="w-3 h-3"></i> Valid address detected</span>`;
+    feedback.classList.remove('hidden');
+    btn.disabled = transferState.amount <= 0;
+  } else {
+    feedback.classList.add('hidden');
+    btn.disabled = true;
+  }
+  lucide.createIcons();
+}
+
+document.getElementById('initiateTransferBtn').addEventListener('click', startTransferProtocol);
+
+// ============ PROTOCOL STATE MACHINE ============
+function startTransferProtocol() {
+  transferState.stepIndex = 0;
+  document.getElementById('transferProtocolModal').classList.remove('hidden');
+  document.getElementById('transferProtocolModal').classList.add('flex');
+  renderProtocolStep();
+}
+
+function closeProtocolModal() {
+  document.getElementById('transferProtocolModal').classList.add('hidden');
+  document.getElementById('transferProtocolModal').classList.remove('flex');
+}
+
+function renderProtocolStep() {
+  const step = protocolSteps[transferState.stepIndex];
+  const stepsContainer = document.getElementById('protocolSteps');
+  const actionArea = document.getElementById('protocolActionArea');
+  
+  stepsContainer.innerHTML = protocolSteps.map((s, i) => {
+    let circleClass = '';
+    let content = '';
+    let textClass = 'text-[var(--text-muted)]';
+    
+    if (i < transferState.stepIndex) {
+      circleClass = 'complete';
+      content = '<i data-lucide="check" class="w-3 h-3 text-[#09090B]"></i>';
+      textClass = 'text-[var(--text-primary)] font-medium';
+    } else if (i === transferState.stepIndex) {
+      circleClass = 'active';
+      content = '<div class="w-2 h-2 rounded-full bg-[#CCFF00] animate-pulse"></div>';
+      textClass = 'text-[var(--text-primary)] font-medium';
+    }
+    
+    return `
+      <div class="flex items-center gap-3">
+        <div class="step-circle ${circleClass}">${content}</div>
+        <div class="${textClass} text-sm">${s.name}</div>
+      </div>
+    `;
+  }).join('');
+  
+  lucide.createIcons();
+
+  document.getElementById('protocolTitle').textContent = step.name;
+  document.getElementById('protocolDesc').textContent = step.desc;
+
+  if (step.requiresCode) {
+    showCodeRequestUI(step);
+  } else {
+    actionArea.classList.add('hidden');
+    startProcessingAnimation(step);
+  }
+}
+
+function startProcessingAnimation(step) {
+  const iconEl = document.getElementById('protocolIcon');
+  iconEl.innerHTML = '<i data-lucide="loader-2" class="w-6 h-6 text-[#CCFF00] animate-spin"></i>';
+  lucide.createIcons();
+
+  const duration = step.duration || 2000;
+  
+  setTimeout(() => {
+    if (transferState.stepIndex < protocolSteps.length - 1) {
+      transferState.stepIndex++;
+      renderProtocolStep();
+    } else {
+      completeTransfer();
+    }
+  }, duration);
+}
+
+function showCodeRequestUI(step) {
+  const actionArea = document.getElementById('protocolActionArea');
+  actionArea.classList.remove('hidden');
+  actionArea.innerHTML = `
+    <div class="text-center">
+      <div class="w-10 h-10 rounded-lg bg-[var(--warning)] bg-opacity-10 flex items-center justify-center mx-auto mb-3">
+        <i data-lucide="lock-keyhole" class="w-5 h-5 text-[var(--warning)]"></i>
+      </div>
+      <h4 class="font-semibold mb-1 text-[var(--text-primary)]">Authorization Required</h4>
+      <p class="text-xs text-[var(--text-muted)] mb-4">Request a 6-digit code from your administrator.</p>
+      
+      <div class="flex gap-2 mb-4">
+        <input id="protocolCodeInput" type="text" maxlength="6" class="input-field text-center font-mono tracking-[0.3em] uppercase" placeholder="XXXXXX">
+        <button id="verifyCodeBtn" class="btn btn-primary px-5">Verify</button>
+      </div>
+      
+      <button id="requestAdminCode" class="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition flex items-center gap-1.5 mx-auto font-medium">
+        <i data-lucide="message-square" class="w-3.5 h-3.5"></i> Simulate Request to Admin
+      </button>
+    </div>
+  `;
+  lucide.createIcons();
+
+  document.getElementById('requestAdminCode').addEventListener('click', (e) => {
+    e.target.disabled = true;
+    e.target.innerHTML = '<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i> Waiting for Admin...';
+    
+    setTimeout(() => {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let code = '';
+      for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+      
+      const input = document.getElementById('protocolCodeInput');
+      if (input) input.value = code;
+      showToast(`Admin sent code: ${code}`, 'info');
+    }, 1800);
+  });
+
+  document.getElementById('verifyCodeBtn').addEventListener('click', () => {
+    const code = document.getElementById('protocolCodeInput').value.trim();
+    if (code.length === 6) {
+      actionArea.classList.add('hidden');
+      startProcessingAnimation(step);
+    } else {
+      showToast('Invalid code length. 6 characters required.', 'error');
+    }
+  });
+}
+
+async function completeTransfer() {
+  document.getElementById('protocolIcon').innerHTML = '<div class="w-12 h-12 rounded-xl bg-[#CCFF00] bg-opacity-10 flex items-center justify-center"><i data-lucide="loader-2" class="w-6 h-6 text-[#CCFF00] animate-spin"></i></div>';
+  document.getElementById('protocolTitle').textContent = 'Broadcasting Transfer...';
+  document.getElementById('protocolDesc').textContent = 'Submitting transaction to backend and network.';
+  lucide.createIcons();
+
+  try {
+    const result = await apiFetch('/api/transactions/transfer', {
+      method: 'POST',
+      body: JSON.stringify({
+        asset: transferState.asset,
+        address: transferState.address.trim(),
+        amount: transferState.amount
+      })
+    });
+
+    const tx = result.transaction;
+    const hash = '0x' + Math.random().toString(16).substring(2, 42);
+
+    document.getElementById('protocolIcon').innerHTML = '<div class="w-12 h-12 rounded-xl bg-[#CCFF00] bg-opacity-10 flex items-center justify-center"><i data-lucide="check-circle-2" class="w-6 h-6 text-[#CCFF00]"></i></div>';
+    document.getElementById('protocolTitle').textContent = 'Transfer Complete';
+    document.getElementById('protocolDesc').textContent = 'All compliance checks passed and transaction registered.';
+
+    document.getElementById('protocolSteps').innerHTML = `
+      <div class="bg-[var(--bg-elev-2)] rounded-xl p-4 border border-[var(--border)] text-left space-y-2">
+        <div class="flex justify-between text-sm">
+          <span class="text-[var(--text-muted)]">Amount</span>
+          <span class="font-mono font-medium">${tx.amount} ${tx.asset_symbol}</span>
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-[var(--text-muted)]">USD Value</span>
+          <span class="font-mono font-medium">$${parseFloat(tx.usd_value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-[var(--text-muted)]">Network Fee</span>
+          <span class="font-mono font-medium">$${parseFloat(tx.fee).toFixed(2)}</span>
+        </div>
+        <div class="flex justify-between text-sm pt-2 border-t border-[var(--border)]">
+          <span class="text-[var(--text-muted)]">Tx Status</span>
+          <span class="font-mono text-[#CCFF00] font-semibold uppercase">${tx.status}</span>
+        </div>
+      </div>
+      <button onclick="finishTransferSuccess()" class="btn btn-primary w-full py-3 mt-4">Done</button>
+    `;
+    lucide.createIcons();
+
+    showToast(`Transfer of ${tx.amount} ${tx.asset_symbol} completed!`, 'success');
+  } catch (err) {
+    document.getElementById('protocolIcon').innerHTML = '<div class="w-12 h-12 rounded-xl bg-[var(--danger)] bg-opacity-10 flex items-center justify-center"><i data-lucide="alert-circle" class="w-6 h-6 text-[var(--danger)]"></i></div>';
+    document.getElementById('protocolTitle').textContent = 'Transfer Failed';
+    document.getElementById('protocolDesc').textContent = err.message || 'Could not complete transfer';
+    document.getElementById('protocolSteps').innerHTML = `
+      <div class="p-4 bg-[var(--bg-elev-2)] rounded-xl border border-[var(--danger)] text-sm text-[var(--danger)]">
+        ${err.message || 'An error occurred during transfer verification.'}
+      </div>
+      <button onclick="closeProtocolModal()" class="btn btn-secondary w-full py-3 mt-4">Close</button>
+    `;
+    lucide.createIcons();
+    showToast(err.message || 'Transfer failed', 'error');
+  }
+}
+
+function finishTransferSuccess() {
+  closeProtocolModal();
+  document.getElementById('transferAddress').value = '';
+  document.getElementById('transferAmount').value = '';
+  document.getElementById('usdValue').textContent = '0.00';
+  document.getElementById('addressFeedback').classList.add('hidden');
+  document.getElementById('initiateTransferBtn').disabled = true;
+  transferState = { asset: 'ETH', address: '', amount: 0, stepIndex: 0, pendingTx: null };
+  renderApp();
+}
+
+// ============ COPY CLIENT ID ============
+function copyClientId() {
+  const clientId = currentProfile?.client_id || 'CL-001';
+  navigator.clipboard?.writeText(clientId).then(() => {
+    showToast(`Client ID ${clientId} copied to clipboard`, 'info');
+  }).catch(() => {
+    showToast(`Client ID: ${clientId}`, 'info');
+  });
+}
+
+const btnCopyIdEl = document.getElementById('btnCopyId');
+if (btnCopyIdEl) {
+  btnCopyIdEl.addEventListener('click', copyClientId);
+}
+
+// ============ RENDER DATA FROM BACKEND ============
+async function renderApp() {
+  try {
+    // 1. Fetch Profile
+    const profileRes = await apiFetch('/api/profile').catch(() => ({ profile: {} }));
+    currentProfile = profileRes.profile || {};
+    
+    // 2. Fetch Assets catalog & User Holdings
+    const [assetsCatalogRes, holdingsRes] = await Promise.all([
+      apiFetch('/api/assets').catch(() => ({ assets: [] })),
+      apiFetch('/api/assets/holdings').catch(() => ({ holdings: [] }))
+    ]);
+
+    const catalog = assetsCatalogRes.assets || [];
+    userHoldings = holdingsRes.holdings || [];
+
+    // Sync assetConfig prices and fees from backend catalog
+    catalog.forEach(a => {
+      if (assetConfig[a.symbol]) {
+        assetConfig[a.symbol].price = parseFloat(a.price) || assetConfig[a.symbol].price;
+        assetConfig[a.symbol].fee = parseFloat(a.fee) || assetConfig[a.symbol].fee;
+      }
+    });
+
+    // 3. Fetch Transaction History
+    const historyRes = await apiFetch('/api/transactions/history').catch(() => ({ transactions: [] }));
+    const txs = historyRes.transactions || [];
+
+    // ---- POPULATE DASHBOARD ----
+    const name = currentProfile.name || (currentUser?.role === 'corporate' ? 'Stratos Maritime Ltd' : 'Valued Client');
+    const welcomeEl = document.getElementById('userWelcome');
+    if (welcomeEl) welcomeEl.textContent = `Welcome back, ${name}`;
+
+    // Available Credit & Utilized
+    const creditLimit = parseFloat(currentProfile.credit_limit) || 5000000;
+    const utilized = parseFloat(currentProfile.utilized) || 1850000;
+    const available = Math.max(0, creditLimit - utilized);
+    const utilPct = Math.min(100, Math.round((utilized / (creditLimit || 1)) * 100));
+
+    const availCreditEl = document.getElementById('availableCredit');
+    if (availCreditEl) {
+      availCreditEl.innerHTML = `$${Math.floor(available).toLocaleString('en-US')}<span class="text-lg text-[var(--text-muted)]">.${(available % 1).toFixed(2).slice(2)}</span>`;
+    }
+
+    const totalUtilEl = document.getElementById('totalUtilized');
+    if (totalUtilEl) {
+      totalUtilEl.innerHTML = `$${Math.floor(utilized).toLocaleString('en-US')}<span class="text-lg text-[var(--text-muted)]">.${(utilized % 1).toFixed(2).slice(2)}</span>`;
+    }
+
+    const utilBarEl = document.getElementById('utilizedBar');
+    if (utilBarEl) utilBarEl.style.width = `${utilPct}%`;
+
+    const utilPctEl = document.getElementById('utilizedPercent');
+    if (utilPctEl) utilPctEl.textContent = `${utilPct}%`;
+
+    // Wallet Balance
+    const walletTotal = userHoldings.reduce((sum, h) => {
+      const price = assetConfig[h.asset_symbol]?.price || parseFloat(h.price) || 0;
+      return sum + (parseFloat(h.balance) * price);
+    }, 0);
+
+    const walletBalEl = document.getElementById('walletBalance');
+    if (walletBalEl) {
+      walletBalEl.innerHTML = `$${Math.floor(walletTotal).toLocaleString('en-US')}<span class="text-lg text-[var(--text-muted)]">.${(walletTotal % 1).toFixed(2).slice(2)}</span>`;
+    }
+
+    // Update Transfer Available Balance
+    updateAvailableTransferBalance();
+
+    // Render Assets Card
+    const assetsContainer = document.getElementById('assetsList');
+    if (assetsContainer && userHoldings.length > 0) {
+      assetsContainer.innerHTML = userHoldings.map(h => {
+        const symbol = h.asset_symbol;
+        const name = h.name || assetConfig[symbol]?.name || symbol;
+        const balance = parseFloat(h.balance) || 0;
+        const price = assetConfig[symbol]?.price || parseFloat(h.price) || 0;
+        const usdVal = balance * price;
+        const color = h.color || (symbol === 'ETH' ? '#627EEA' : symbol === 'BTC' ? '#F7931A' : '#26A17B');
+        const iconLetter = symbol === 'ETH' ? 'Ξ' : symbol === 'BTC' ? '₿' : '₮';
+
+        return `
+          <div class="flex items-center justify-between p-2 rounded-lg hover:bg-[var(--bg-elev-2)] transition cursor-pointer" onclick="selectAssetForTransfer('${symbol}')">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background-color: ${color}">${iconLetter}</div>
+              <div>
+                <div class="font-medium text-sm">${name}</div>
+                <div class="text-xs text-[var(--text-muted)]">${symbol}</div>
+              </div>
+            </div>
+            <div class="text-right">
+              <div class="font-medium text-sm tabular">${balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</div>
+              <div class="text-xs text-[var(--text-muted)] tabular">$${Math.round(usdVal).toLocaleString('en-US')}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Render Transaction History Card
+    const list = document.getElementById('txList');
+    if (list) {
+      if (txs.length === 0) {
+        list.innerHTML = `<div class="text-xs text-[var(--text-muted)] py-4 text-center">No recent transactions recorded.</div>`;
+      } else {
+        list.innerHTML = txs.map(t => {
+          const symbol = t.asset_symbol;
+          const amount = parseFloat(t.amount);
+          const usd = parseFloat(t.usd_value || (amount * (assetConfig[symbol]?.price || 1)));
+          const isConfirmed = (t.status || '').toLowerCase() === 'confirmed';
+          const dateStr = t.created_at ? new Date(t.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Recent';
+          const iconLetter = symbol === 'ETH' ? 'Ξ' : symbol === 'BTC' ? '₿' : '₮';
+          const bgCol = symbol === 'ETH' ? 'bg-[#627EEA]' : symbol === 'BTC' ? 'bg-[#F7931A]' : 'bg-[#26A17B]';
+
+          return `
+            <div class="flex items-center justify-between p-2 rounded-lg hover:bg-[var(--bg-elev-2)] transition cursor-pointer">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full ${bgCol} flex items-center justify-center text-white text-[10px] font-bold">
+                  ${iconLetter}
+                </div>
+                <div>
+                  <div class="font-medium text-sm tabular">${amount} ${symbol}</div>
+                  <div class="text-xs text-[var(--text-muted)] font-mono">${dateStr}</div>
+                </div>
+              </div>
+              <div class="text-right">
+                <div class="font-medium text-sm tabular">$${Math.round(usd).toLocaleString('en-US')}</div>
+                <div class="text-xs ${isConfirmed ? 'text-[var(--success)]' : 'text-[var(--warning)]'} mt-0.5 flex items-center justify-end gap-1">
+                  <span class="status-dot ${isConfirmed ? 'status-success' : 'status-pending'}"></span> ${t.status || 'pending'}
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    // ---- POPULATE PROFILE VIEW ----
+    const profileNameEl = document.getElementById('profileName');
+    if (profileNameEl) profileNameEl.textContent = currentProfile.name || name;
+
+    const profileAvatarEl = document.getElementById('profileAvatar');
+    if (profileAvatarEl) profileAvatarEl.textContent = (currentProfile.name || name).charAt(0).toUpperCase();
+
+    const profileIdsEl = document.getElementById('profileIds');
+    if (profileIdsEl) {
+      const cId = currentProfile.client_id || 'CL-001';
+      const tId = currentProfile.tax_id || 'TX-MRD-8F3A92K';
+      profileIdsEl.textContent = `${cId} · ${tId}`;
+    }
+
+    const roleBadge = document.getElementById('profileRoleBadge');
+    if (roleBadge) {
+      roleBadge.textContent = (currentUser?.role || currentProfile.role || 'Corporate').toUpperCase();
+    }
+
+    const tierBadge = document.getElementById('profileTierBadge');
+    if (tierBadge) {
+      tierBadge.textContent = currentProfile.tier || 'Tier 3';
+    }
+
+  } catch (err) {
+    console.error('Error rendering app data:', err);
+  } finally {
+    lucide.createIcons();
+  }
+}
+
+function selectAssetForTransfer(symbol) {
+  const btn = document.querySelector(`.asset-btn[data-asset="${symbol}"]`);
+  if (btn) btn.click();
+}
+
+lucide.createIcons();
+</script>
+</body>
+</html>
