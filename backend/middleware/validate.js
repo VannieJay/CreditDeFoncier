@@ -1,9 +1,13 @@
-const { body, validationResult } = require('express-validator');
+const { body, validationResult, param } = require('express-validator');
 
 const registerValidation = [
   body('email').isEmail().normalizeEmail(),
   body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
   body('role').optional().isIn(['individual', 'corporate']),
+  body('name').optional().isString().trim().isLength({ max: 120 }),
+  body('client_id').optional().isString().trim().isLength({ max: 60 }),
+  body('tier').optional().isIn(['Tier 1', 'Tier 2', 'Tier 3']),
+  body('credit_limit').optional().isFloat({ min: 0 }),
 ];
 
 const loginValidation = [
@@ -29,6 +33,21 @@ const profileValidation = [
   body('liquidity_verified').optional().isBoolean(),
 ];
 
+const adminStatusValidation = [
+  param('id').isInt({ min: 1 }).toInt(),
+  body('active').isBoolean().toBoolean(),
+];
+
+const adminKycValidation = [
+  param('id').isInt({ min: 1 }).toInt(),
+  body('kyc_status').optional().isIn(['pending', 'in_review', 'verified', 'rejected']),
+  body('identity_verified').optional().isBoolean().toBoolean(),
+  body('business_registered').optional().isBoolean().toBoolean(),
+  body('liquidity_verified').optional().isBoolean().toBoolean(),
+];
+
+const idParamValidation = [param('id').isInt({ min: 1 }).toInt()];
+
 function handleValidation(req, res, next) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -42,5 +61,8 @@ module.exports = {
   loginValidation,
   transferValidation,
   profileValidation,
+  adminStatusValidation,
+  adminKycValidation,
+  idParamValidation,
   handleValidation,
 };

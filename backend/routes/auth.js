@@ -1,6 +1,6 @@
-const express = require('express');
+﻿const express = require('express');
 const authService = require('../services/authService');
-const { authenticate } = require('../middleware/auth');
+const { authenticate, requireRole } = require('../middleware/auth');
 const {
   registerValidation,
   loginValidation,
@@ -9,20 +9,33 @@ const {
 
 const router = express.Router();
 
-router.post('/register', registerValidation, handleValidation, async (req, res, next) => {
-  try {
-    const { email, password, role } = req.body;
-    const existing = await authService.findUserByEmail(email);
-    if (existing) {
-      return res.status(409).json({ error: 'Email already registered' });
+// Admin-only account creation (public signup removed).
+router.post(
+  '/register',
+  authenticate,
+  requireRole('admin'),
+  registerValidation,
+  handleValidation,
+  async (req, res, next) => {
+    try {
+      const { email, password, role, name, client_id, tier, credit_limit } = req.body;
+      const existing = await authService.findUserByEmail(email);
+      if (existing) {
+        return res.status(409).json({ error: 'Email already registered' });
+      }
+      const user = await authService.createUser({
+        email,
+        password,
+        role: role || 'individual',
+        profile: { name, client_id, tier, credit_limit },
+      });
+      // No token returned: accounts are created by admin, users log in themselves.
+      res.status(201).json({ user });
+    } catch (err) {
+      next(err);
     }
-    const user = await authService.createUser(email, password, role || 'individual');
-    const token = authService.signToken(user);
-    res.status(201).json({ token, user });
-  } catch (err) {
-    next(err);
   }
-});
+);
 
 router.post('/login', loginValidation, handleValidation, async (req, res, next) => {
   try {
@@ -30,6 +43,9 @@ router.post('/login', loginValidation, handleValidation, async (req, res, next) 
     const user = await authService.findUserByEmail(email);
     if (!user) {
       return res.status(401).json({ error: 'Invalid email or password' });
+    }
+    if (user.active === false) {
+      return res.status(403).json({ error: 'Account deactivated. Contact your administrator.' });
     }
     const ok = await authService.verifyPassword(password, user.password_hash);
     if (!ok) {

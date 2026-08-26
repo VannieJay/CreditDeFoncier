@@ -68,10 +68,11 @@ app.use(express.json({ limit: '1mb' }));
 const frontendPath = path.join(__dirname, '..', 'frontend');
 app.use(express.static(frontendPath));
 
-// Health check
+// Health check — also tops up live price cache (keeps prices fresh via pinger)
 app.get('/health', async (req, res) => {
   try {
     await pool.query('SELECT 1');
+    require('./services/priceService').ensureFreshPrices().catch(() => {});
     res.json({ status: 'ok', db: 'connected' });
   } catch (err) {
     res.status(503).json({ status: 'error', db: 'disconnected' });
@@ -83,6 +84,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/assets', require('./routes/assets'));
 app.use('/api/transactions', require('./routes/transactions'));
 app.use('/api/profile', require('./routes/profile'));
+app.use('/api/admin', require('./routes/admin'));
 
 // SPA fallback + API 404 (Express 5: no bare '*' wildcard routes)
 app.use((req, res, next) => {

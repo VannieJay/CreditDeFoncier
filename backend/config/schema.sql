@@ -4,7 +4,8 @@ CREATE TABLE IF NOT EXISTS users (
   email         TEXT NOT NULL UNIQUE,
   password_hash TEXT NOT NULL,
   role          TEXT NOT NULL DEFAULT 'individual'
-                  CHECK (role IN ('individual', 'corporate')),
+                  CHECK (role IN ('individual', 'corporate', 'admin')),
+  active        BOOLEAN NOT NULL DEFAULT true,
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 

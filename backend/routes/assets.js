@@ -1,11 +1,13 @@
 const express = require('express');
 const assetService = require('../services/assetService');
+const priceService = require('../services/priceService');
 const { authenticate } = require('../middleware/auth');
 
 const router = express.Router();
 
 router.get('/', async (req, res, next) => {
   try {
+    priceService.getPrices().catch(() => {}); // background refresh when stale
     const assets = await assetService.getAssets();
     res.json({ assets });
   } catch (err) {

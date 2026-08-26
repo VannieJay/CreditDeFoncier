@@ -396,7 +396,6 @@
 
       <h2 id="authHeading" class="font-display text-2xl font-bold mb-2">Access Portal</h2>
       <p id="authSubheading" class="text-[var(--text-muted)] mb-8 text-sm">Enter your credentials to continue.</p>
-
       <div class="flex gap-2 mb-6 p-1 bg-[var(--bg-elev-2)] rounded-lg">
         <button type="button" id="btnIndividual" class="flex-1 py-2 text-sm font-medium rounded-md transition-all bg-[var(--bg-elev)] shadow-sm">Individual</button>
         <button type="button" id="btnCorporate" class="flex-1 py-2 text-sm font-medium rounded-md transition-all text-[var(--text-muted)]">Corporate</button>
@@ -405,23 +404,18 @@
       <form id="authForm" class="space-y-4">
         <div>
           <label class="text-xs font-medium text-[var(--text-muted)] mb-1.5 block uppercase tracking-wider">Email</label>
-          <input id="authEmail" type="email" class="input-field" value="johndoe@examplemail.com" required>
+          <input id="authEmail" type="email" class="input-field" placeholder="you@company.com" autocomplete="username" required>
         </div>
         <div>
           <label class="text-xs font-medium text-[var(--text-muted)] mb-1.5 block uppercase tracking-wider">Password</label>
           <div class="relative">
-            <input id="authPassword" type="password" class="input-field pr-12" value="Password123!" required>
+            <input id="authPassword" type="password" class="input-field pr-12" placeholder="••••••••" autocomplete="current-password" required>
             <button type="button" id="togglePassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] p-1.5 rounded hover:bg-[var(--border)] transition">
               <i data-lucide="eye" class="w-4 h-4"></i>
             </button>
           </div>
         </div>
         <button type="submit" id="authSubmitBtn" class="btn btn-primary w-full py-3.5 mt-6">Secure Login</button>
-        <div class="text-center mt-4">
-          <button type="button" id="authModeToggle" class="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition">
-            Don't have an account? <span class="text-[#CCFF00] font-medium">Create one</span>
-          </button>
-        </div>
       </form>
     </div>
   </div>
@@ -788,6 +782,132 @@
   </div>
 </nav>
 
+<!-- ============ ADMIN CONSOLE ============ -->
+<div id="adminConsole" style="display: none;" class="app-layout">
+  <aside class="sidebar">
+    <div class="p-6 border-b border-[var(--border)] flex items-center gap-3">
+      <svg width="32" height="32" viewBox="0 0 100 100" fill="none">
+        <path d="M50 5 L90 27.5 L90 72.5 L50 95 L10 72.5 L10 27.5 Z" stroke="#CCFF00" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M62 35 A20 20 0 1 0 62 65" stroke="#CCFF00" stroke-width="5" stroke-linecap="round"/>
+        <path d="M42 38 L42 62 M42 42 L54 42 M42 50 L52 50" stroke="#CCFF00" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="font-display text-sm font-bold tracking-tight leading-none">
+        CDF<br>ADMIN
+      </div>
+    </div>
+    <nav class="flex-1 p-4">
+      <div class="text-[10px] uppercase tracking-wider text-[var(--text-muted)] px-4 mb-2 font-semibold">Management</div>
+      <div class="nav-item active" id="adminNavUsers">
+        <i data-lucide="users" class="w-4 h-4"></i>
+        <span>User Accounts</span>
+      </div>
+    </nav>
+    <div class="p-4 border-t border-[var(--border)]">
+      <div class="nav-item" onclick="logout()">
+        <i data-lucide="log-out" class="w-4 h-4"></i>
+        <span>Logout</span>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="flex items-center justify-between mb-8 relative z-10">
+      <div>
+        <h1 class="font-display text-3xl font-bold">User Accounts</h1>
+        <p class="text-sm text-[var(--text-muted)] mt-1">Create accounts, manage KYC and access.</p>
+      </div>
+      <button onclick="toggleCreatePanel()" id="toggleCreateBtn" class="btn btn-primary px-4 py-2.5">
+        <i data-lucide="user-plus" class="w-4 h-4"></i> New Account
+      </button>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 relative z-10">
+      <div class="card p-5">
+        <div class="text-xs text-[var(--text-muted)] uppercase tracking-wider font-semibold mb-2">Total Users</div>
+        <div id="statTotal" class="font-display text-3xl font-bold tabular">–</div>
+      </div>
+      <div class="card p-5">
+        <div class="text-xs text-[var(--text-muted)] uppercase tracking-wider font-semibold mb-2">Active</div>
+        <div id="statActive" class="font-display text-3xl font-bold tabular text-[var(--success)]">–</div>
+      </div>
+      <div class="card p-5">
+        <div class="text-xs text-[var(--text-muted)] uppercase tracking-wider font-semibold mb-2">Corporate</div>
+        <div id="statCorporate" class="font-display text-3xl font-bold tabular">–</div>
+      </div>
+      <div class="card p-5">
+        <div class="text-xs text-[var(--text-muted)] uppercase tracking-wider font-semibold mb-2">Pending KYC</div>
+        <div id="statKyc" class="font-display text-3xl font-bold tabular text-[var(--warning)]">–</div>
+      </div>
+    </div>
+
+    <!-- Create Account Panel -->
+    <div id="createAccountPanel" class="card p-8 mb-6 hidden anim-fade relative z-10">
+      <h3 class="font-display text-xl font-bold mb-6">Create New Account</h3>
+      <form id="createAccountForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="text-xs font-medium text-[var(--text-muted)] mb-1.5 block uppercase tracking-wider">Email *</label>
+          <input id="newEmail" type="email" class="input-field" placeholder="client@company.com" required>
+        </div>
+        <div>
+          <label class="text-xs font-medium text-[var(--text-muted)] mb-1.5 block uppercase tracking-wider">Password *</label>
+          <input id="newPassword" type="text" class="input-field font-mono" placeholder="min. 8 characters" minlength="8" required>
+        </div>
+        <div>
+          <label class="text-xs font-medium text-[var(--text-muted)] mb-1.5 block uppercase tracking-wider">Account Type</label>
+          <select id="newRole" class="input-field">
+            <option value="individual">Individual</option>
+            <option value="corporate">Corporate</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs font-medium text-[var(--text-muted)] mb-1.5 block uppercase tracking-wider">Name / Company</label>
+          <input id="newName" type="text" class="input-field" placeholder="Acme Ltd / Jane Doe">
+        </div>
+        <div>
+          <label class="text-xs font-medium text-[var(--text-muted)] mb-1.5 block uppercase tracking-wider">Client ID</label>
+          <input id="newClientId" type="text" class="input-field font-mono" placeholder="CL-004">
+        </div>
+        <div>
+          <label class="text-xs font-medium text-[var(--text-muted)] mb-1.5 block uppercase tracking-wider">Tier</label>
+          <select id="newTier" class="input-field">
+            <option>Tier 1</option>
+            <option>Tier 2</option>
+            <option selected>Tier 3</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs font-medium text-[var(--text-muted)] mb-1.5 block uppercase tracking-wider">Credit Limit (USD)</label>
+          <input id="newCreditLimit" type="number" min="0" step="1000" class="input-field tabular" placeholder="5000000">
+        </div>
+        <div class="flex items-end gap-2">
+          <button type="submit" id="createAccountBtn" class="btn btn-primary flex-1 py-3.5">Create Account</button>
+          <button type="button" onclick="toggleCreatePanel()" class="btn btn-secondary py-3.5 px-5">Cancel</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Users Table -->
+    <div class="card p-2 md:p-6 overflow-x-auto relative z-10">
+      <table class="w-full text-sm min-w-[760px]">
+        <thead>
+          <tr class="text-left text-xs text-[var(--text-muted)] uppercase tracking-wider border-b border-[var(--border)]">
+            <th class="py-3 px-3 font-semibold">User</th>
+            <th class="py-3 px-3 font-semibold">Type</th>
+            <th class="py-3 px-3 font-semibold">Tier</th>
+            <th class="py-3 px-3 font-semibold">KYC</th>
+            <th class="py-3 px-3 font-semibold">Status</th>
+            <th class="py-3 px-3 font-semibold text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="usersTableBody">
+          <tr><td colspan="6" class="py-8 text-center text-[var(--text-muted)] text-xs">Loading users...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
 <script>
 // ============ CONFIG & STATE ============
 const assetConfig = {
@@ -800,7 +920,6 @@ let transferState = { asset: 'ETH', address: '', amount: 0, stepIndex: 0, pendin
 let currentUser = null;
 let currentProfile = null;
 let userHoldings = [];
-let authMode = 'login'; // 'login' | 'register'
 let selectedRole = 'individual'; // 'individual' | 'corporate'
 
 const protocolSteps = [
@@ -902,22 +1021,23 @@ function hideSplash() {
 
 function showApp() {
   document.getElementById('authScreen').style.display = 'none';
-  document.getElementById('appShell').style.display = 'flex';
-  document.getElementById('bottomNav').classList.remove('hidden');
-  renderApp();
+  if (currentUser && currentUser.role === 'admin') {
+    enterAdminConsole();
+  } else {
+    document.getElementById('appShell').style.display = 'flex';
+    document.getElementById('bottomNav').classList.remove('hidden');
+    renderApp();
+  }
 }
 
 // ============ AUTH UI TOGGLES ============
+// Individual/Corporate is account-type context only; credentials are never prefilled.
 document.getElementById('btnIndividual').addEventListener('click', () => {
   selectedRole = 'individual';
   document.getElementById('btnIndividual').classList.add('bg-[var(--bg-elev)]', 'shadow-sm');
   document.getElementById('btnIndividual').classList.remove('text-[var(--text-muted)]');
   document.getElementById('btnCorporate').classList.remove('bg-[var(--bg-elev)]', 'shadow-sm');
   document.getElementById('btnCorporate').classList.add('text-[var(--text-muted)]');
-  if (authMode === 'login') {
-    document.getElementById('authEmail').value = 'johndoe@examplemail.com';
-    document.getElementById('authPassword').value = 'Password123!';
-  }
 });
 
 document.getElementById('btnCorporate').addEventListener('click', () => {
@@ -926,33 +1046,7 @@ document.getElementById('btnCorporate').addEventListener('click', () => {
   document.getElementById('btnCorporate').classList.remove('text-[var(--text-muted)]');
   document.getElementById('btnIndividual').classList.remove('bg-[var(--bg-elev)]', 'shadow-sm');
   document.getElementById('btnIndividual').classList.add('text-[var(--text-muted)]');
-  if (authMode === 'login') {
-    document.getElementById('authEmail').value = 'stratos@maritime.dev';
-    document.getElementById('authPassword').value = 'Password123!';
-  }
 });
-
-const modeToggleBtn = document.getElementById('authModeToggle');
-if (modeToggleBtn) {
-  modeToggleBtn.addEventListener('click', () => {
-    authMode = authMode === 'login' ? 'register' : 'login';
-    const heading = document.getElementById('authHeading');
-    const subheading = document.getElementById('authSubheading');
-    const submitBtn = document.getElementById('authSubmitBtn');
-
-    if (authMode === 'register') {
-      heading.textContent = 'Create Account';
-      subheading.textContent = 'Register an institutional or individual account.';
-      submitBtn.textContent = 'Create Account';
-      modeToggleBtn.innerHTML = 'Already have an account? <span class="text-[#CCFF00] font-medium">Sign in</span>';
-    } else {
-      heading.textContent = 'Access Portal';
-      subheading.textContent = 'Enter your credentials to continue.';
-      submitBtn.textContent = 'Secure Login';
-      modeToggleBtn.innerHTML = "Don't have an account? <span class=" + '"text-[#CCFF00] font-medium">Create one</span>';
-    }
-  });
-}
 
 document.getElementById('togglePassword').addEventListener('click', (e) => {
   const input = document.getElementById('authPassword');
@@ -970,7 +1064,6 @@ document.getElementById('togglePassword').addEventListener('click', (e) => {
 document.getElementById('authForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const submitBtn = document.getElementById('authSubmitBtn');
-  const originalText = submitBtn.textContent;
   submitBtn.disabled = true;
   submitBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin inline-block mr-2"></i> Authenticating...';
   lucide.createIcons();
@@ -979,26 +1072,21 @@ document.getElementById('authForm').addEventListener('submit', async (e) => {
   const password = document.getElementById('authPassword').value;
 
   try {
-    const endpoint = authMode === 'register' ? '/api/auth/register' : '/api/auth/login';
-    const payload = authMode === 'register'
-      ? { email, password, role: selectedRole }
-      : { email, password };
-
-    const res = await apiFetch(endpoint, {
+    const res = await apiFetch('/api/auth/login', {
       method: 'POST',
-      body: JSON.stringify(payload)
+      body: JSON.stringify({ email, password })
     });
 
     setAuthToken(res.token);
     currentUser = res.user;
 
     showApp();
-    showToast(authMode === 'register' ? 'Account created successfully' : 'Access Granted', 'success');
+    showToast('Access Granted', 'success');
   } catch (err) {
     showToast(err.message || 'Authentication failed', 'error');
   } finally {
     submitBtn.disabled = false;
-    submitBtn.textContent = originalText;
+    submitBtn.textContent = 'Secure Login';
   }
 });
 
@@ -1008,6 +1096,7 @@ function logout() {
   currentProfile = null;
   userHoldings = [];
   document.getElementById('appShell').style.display = 'none';
+  document.getElementById('adminConsole').style.display = 'none';
   document.getElementById('authScreen').style.display = 'grid';
   document.getElementById('bottomNav').classList.add('hidden');
 }
@@ -1516,6 +1605,153 @@ async function renderApp() {
 function selectAssetForTransfer(symbol) {
   const btn = document.querySelector(`.asset-btn[data-asset="${symbol}"]`);
   if (btn) btn.click();
+}
+
+// ============ ADMIN CONSOLE ============
+function enterAdminConsole() {
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('appShell').style.display = 'none';
+  document.getElementById('bottomNav').classList.add('hidden');
+  document.getElementById('adminConsole').style.display = 'flex';
+  loadUsers();
+  lucide.createIcons();
+}
+
+function toggleCreatePanel() {
+  document.getElementById('createAccountPanel').classList.toggle('hidden');
+  lucide.createIcons();
+}
+
+function kycChip(status) {
+  const map = {
+    verified: ['var(--success)', 'status-success', 'Verified'],
+    pending: ['var(--warning)', 'status-pending', 'Pending'],
+    in_review: ['var(--warning)', 'status-pending', 'In Review'],
+    rejected: ['var(--danger)', 'status-pending', 'Rejected'],
+  };
+  const [color, dot, label] = map[status] || map.pending;
+  return `<span class="text-xs font-medium flex items-center gap-1" style="color:${color}"><span class="status-dot ${dot}"></span> ${label}</span>`;
+}
+
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+let usersCache = [];
+
+async function loadUsers() {
+  const tbody = document.getElementById('usersTableBody');
+  try {
+    const res = await apiFetch('/api/admin/users');
+    usersCache = res.users || [];
+
+    document.getElementById('statTotal').textContent = usersCache.length;
+    document.getElementById('statActive').textContent = usersCache.filter((u) => u.active).length;
+    document.getElementById('statCorporate').textContent = usersCache.filter((u) => u.role === 'corporate').length;
+    document.getElementById('statKyc').textContent = usersCache.filter((u) => u.kyc_status && u.kyc_status !== 'verified' && u.role !== 'admin').length;
+
+    if (usersCache.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-[var(--text-muted)] text-xs">No accounts yet.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = usersCache.map((u) => {
+      const displayName = u.name || u.company_name || u.email.split('@')[0];
+      const roleBadge =
+        u.role === 'admin'
+          ? '<span class="px-2 py-0.5 text-[10px] rounded bg-[#CCFF00] text-[#09090B] font-bold uppercase">Admin</span>'
+          : `<span class="text-xs text-[var(--text-secondary)] capitalize">${escapeHtml(u.role || '')}</span>`;
+      const isSelf = currentUser && u.id === currentUser.id;
+      return `
+        <tr class="border-b border-[var(--border)] hover:bg-[var(--bg-elev-2)] transition">
+          <td class="py-3 px-3">
+            <div class="font-medium">${escapeHtml(displayName)}</div>
+            <div class="text-xs text-[var(--text-muted)] font-mono">${escapeHtml(u.email)}</div>
+          </td>
+          <td class="py-3 px-3">${roleBadge}</td>
+          <td class="py-3 px-3"><span class="text-xs tabular">${escapeHtml(u.tier || '—')}</span></td>
+          <td class="py-3 px-3">${u.role === 'admin' ? '<span class="text-xs text-[var(--text-muted)]">—</span>' : kycChip(u.kyc_status)}</td>
+          <td class="py-3 px-3">${
+            u.active
+              ? '<span class="text-xs font-medium flex items-center gap-1 text-[var(--success)]"><span class="status-dot status-success"></span> Active</span>'
+              : '<span class="text-xs font-medium flex items-center gap-1 text-[var(--danger)]"><span class="status-dot status-pending"></span> Deactivated</span>'
+          }</td>
+          <td class="py-3 px-3 text-right whitespace-nowrap">
+            ${u.role !== 'admin' ? `<button onclick="completeKyc(${u.id})" class="btn btn-ghost text-xs px-2.5 py-1.5" title="Mark all KYC steps verified"><i data-lucide="shield-check" class="w-3.5 h-3.5"></i> KYC</button>` : ''}
+            ${!isSelf ? `<button onclick="toggleUserStatus(${u.id}, ${!u.active})" class="btn btn-ghost text-xs px-2.5 py-1.5">${u.active ? 'Deactivate' : 'Activate'}</button>` : ''}
+            ${!isSelf ? `<button onclick="deleteUser(${u.id})" class="btn btn-ghost text-xs px-2.5 py-1.5 text-[var(--danger)]" title="Permanently delete user and all data"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>` : ''}
+          </td>
+        </tr>
+      `;
+    }).join('');
+    lucide.createIcons();
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-[var(--danger)] text-xs">${escapeHtml(err.message)}</td></tr>`;
+  }
+}
+
+document.getElementById('createAccountForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('createAccountBtn');
+  btn.disabled = true;
+  btn.textContent = 'Creating...';
+  try {
+    await apiFetch('/api/admin/users', {
+      method: 'POST',
+      body: JSON.stringify({
+        email: document.getElementById('newEmail').value.trim(),
+        password: document.getElementById('newPassword').value,
+        role: document.getElementById('newRole').value,
+        name: document.getElementById('newName').value.trim() || undefined,
+        client_id: document.getElementById('newClientId').value.trim() || undefined,
+        tier: document.getElementById('newTier').value,
+        credit_limit: parseFloat(document.getElementById('newCreditLimit').value) || 0,
+      }),
+    });
+    showToast(`Account created for ${document.getElementById('newEmail').value.trim()}`, 'success');
+    document.getElementById('createAccountForm').reset();
+    document.getElementById('createAccountPanel').classList.add('hidden');
+    loadUsers();
+  } catch (err) {
+    showToast(err.message || 'Failed to create account', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Create Account';
+  }
+});
+
+async function toggleUserStatus(id, active) {
+  try {
+    await apiFetch(`/api/admin/users/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ active }),
+    });
+    showToast(active ? 'Account activated' : 'Account deactivated', active ? 'success' : 'info');
+    loadUsers();
+  } catch (err) {
+    showToast(err.message || 'Action failed', 'error');
+  }
+}
+
+async function completeKyc(id) {
+  try {
+    await apiFetch(`/api/admin/users/${id}/kyc`, { method: 'PATCH', body: '{}' });
+    showToast('All verification steps marked verified', 'success');
+    loadUsers();
+  } catch (err) {
+    showToast(err.message || 'KYC update failed', 'error');
+  }
+}
+
+async function deleteUser(id) {
+  if (!confirm('Permanently delete this account and ALL its holdings/transactions? This cannot be undone.')) return;
+  try {
+    await apiFetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+    showToast('Account deleted', 'info');
+    loadUsers();
+  } catch (err) {
+    showToast(err.message || 'Delete failed', 'error');
+  }
 }
 
 lucide.createIcons();
