@@ -384,30 +384,13 @@
   <!-- Form Side -->
   <div class="flex items-center justify-center p-6 md:p-12 bg-[var(--bg-base)]">
     <div class="w-full max-w-sm">
-      <div class="lg:hidden mb-8 flex items-center gap-3">
-        <svg width="36" height="36" viewBox="0 0 100 100" fill="none">
-          <path d="M50 5 L90 27.5 L90 72.5 L50 95 L10 72.5 L10 27.5 Z" stroke="#CCFF00" stroke-width="2" stroke-linejoin="round"/>
-          <path d="M50 15 L80 32.5 L80 67.5 L50 85 L20 67.5 L20 32.5 Z" stroke="#CCFF00" stroke-width="1.5" stroke-linejoin="round" opacity="0.5"/>
-          <path d="M62 35 A20 20 0 1 0 62 65" stroke="#CCFF00" stroke-width="5" stroke-linecap="round"/>
-          <path d="M42 38 L42 62 M42 42 L54 42 M42 50 L52 50" stroke="#CCFF00" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <div class="font-display text-lg font-bold">Credit De Foncier</div>
+      <div class="form">
+        <label class="text-xs font-medium text-[var(--text-muted)] mb-1.5 block uppercase tracking-wider">Email</label>
+        <input id="authEmail" type="email" class="input-field" placeholder="you@company.com" autocomplete="username" required>
       </div>
 
-      <h2 id="authHeading" class="font-display text-2xl font-bold mb-2">Access Portal</h2>
-      <p id="authSubheading" class="text-[var(--text-muted)] mb-8 text-sm">Enter your credentials to continue.</p>
-      <div class="flex gap-2 mb-6 p-1 bg-[var(--bg-elev-2)] rounded-lg">
-        <button type="button" id="btnIndividual" class="flex-1 py-2 text-sm font-medium rounded-md transition-all bg-[var(--bg-elev)] shadow-sm">Individual</button>
-        <button type="button" id="btnCorporate" class="flex-1 py-2 text-sm font-medium rounded-md transition-all text-[var(--text-muted)]">Corporate</button>
-      </div>
-
-      <form id="authForm" class="space-y-4">
-        <div>
-          <label class="text-xs font-medium text-[var(--text-muted)] mb-1.5 block uppercase tracking-wider">Email</label>
-          <input id="authEmail" type="email" class="input-field" placeholder="you@company.com" autocomplete="username" required>
-        </div>
-        <div>
-          <label class="text-xs font-medium text-[var(--text-muted)] mb-1.5 block uppercase tracking-wider">Password</label>
+      <div>
+        <label class="text-xs font-medium text-[var(--text-muted)] mb-1.5 block uppercase tracking-wider">Password</label>
           <div class="relative">
             <input id="authPassword" type="password" class="input-field pr-12" placeholder="••••••••" autocomplete="current-password" required>
             <button type="button" id="togglePassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] p-1.5 rounded hover:bg-[var(--border)] transition">
@@ -920,7 +903,6 @@ let transferState = { asset: 'ETH', address: '', amount: 0, stepIndex: 0, pendin
 let currentUser = null;
 let currentProfile = null;
 let userHoldings = [];
-let selectedRole = 'individual'; // 'individual' | 'corporate'
 
 const protocolSteps = [
   { id: 'bond', name: 'Bond Facilitation Services', desc: 'Initiating primary authorization...', duration: 2500, requiresCode: false },
@@ -1027,27 +1009,12 @@ function showApp() {
     document.getElementById('appShell').style.display = 'flex';
     document.getElementById('bottomNav').classList.remove('hidden');
     renderApp();
+    renderDashboardData();
   }
 }
 
 // ============ AUTH UI TOGGLES ============
 // Individual/Corporate is account-type context only; credentials are never prefilled.
-document.getElementById('btnIndividual').addEventListener('click', () => {
-  selectedRole = 'individual';
-  document.getElementById('btnIndividual').classList.add('bg-[var(--bg-elev)]', 'shadow-sm');
-  document.getElementById('btnIndividual').classList.remove('text-[var(--text-muted)]');
-  document.getElementById('btnCorporate').classList.remove('bg-[var(--bg-elev)]', 'shadow-sm');
-  document.getElementById('btnCorporate').classList.add('text-[var(--text-muted)]');
-});
-
-document.getElementById('btnCorporate').addEventListener('click', () => {
-  selectedRole = 'corporate';
-  document.getElementById('btnCorporate').classList.add('bg-[var(--bg-elev)]', 'shadow-sm');
-  document.getElementById('btnCorporate').classList.remove('text-[var(--text-muted)]');
-  document.getElementById('btnIndividual').classList.remove('bg-[var(--bg-elev)]', 'shadow-sm');
-  document.getElementById('btnIndividual').classList.add('text-[var(--text-muted)]');
-});
-
 document.getElementById('togglePassword').addEventListener('click', (e) => {
   const input = document.getElementById('authPassword');
   const icon = e.currentTarget.querySelector('i');
@@ -1099,6 +1066,86 @@ function logout() {
   document.getElementById('adminConsole').style.display = 'none';
   document.getElementById('authScreen').style.display = 'grid';
   document.getElementById('bottomNav').classList.add('hidden');
+}
+
+async function renderDashboardData() {
+  try {
+    const apiRes = await apiFetch('/api/profile');
+    // The route returns { profile: { ...} }, fall back to direct object
+    const profile = (apiRes && apiRes.profile) ? apiRes.profile : (apiRes || {});
+
+    const apiResAssets = await apiFetch('/api/assets');
+    const assets = (apiResAssets && apiResAssets.profile) ? apiResAssets.profile : (apiResAssets || []);
+
+    // Update Available Credit (credit_limit from profile)
+    const availCreditEl = document.getElementById('availableCredit');
+    if (profile && profile.credit_limit !== undefined && profile.credit_limit !== null) {
+      availCreditEl.innerHTML = `$${Number(profile.credit_limit).toLocaleString()}<span class="text-lg text-[var(--text-muted)]">.00</span>`;
+    } else {
+      availCreditEl.innerHTML = `<span class="text-[var(--text-muted)]">Credit limit pending</span>`;
+    }
+
+    // Update Total Utilized (utilized from profile) + utilization bar
+    const totalUtilizedEl = document.getElementById('totalUtilized');
+    const utilizedPercentEl = document.getElementById('utilizedPercent');
+    const utilizedBar = document.getElementById('utilizedBar');
+    if (profile && profile.utilized !== undefined) {
+      totalUtilizedEl.innerHTML = `$${Number(profile.utilized).toLocaleString()}<span class="text-lg text-[var(--text-muted)]">.00</span>`;
+      const percent = profile.credit_limit && profile.credit_limit > 0
+        ? Math.min((Number(profile.utilized) / Number(profile.credit_limit)) * 100, 100)
+        : 0;
+      utilizedPercentEl.textContent = `${Math.round(percent)}%`;
+      utilizedBar.style.width = `${percent}%`;
+    } else {
+      totalUtilizedEl.innerHTML = `<span class="text-[var(--text-muted)]">Utilization pending</span>`;
+    }
+
+    // Update Wallet Balance status
+    const walletBalanceEl = document.getElementById('walletBalance');
+    const walletCurrencies = document.getElementById('walletCurrencies');
+    if (profile) {
+      walletBalanceEl.innerHTML = `$${Number(profile.utilized || 0).toLocaleString()}<span class="text-lg text-[var(--text-muted)]">.00</span>`;
+      walletCurrencies.textContent = 'ETH, BTC, USDT';
+    } else {
+      walletBalanceEl.innerHTML = '<span class="text-[var(--text-muted)]">Balance pending</span>';
+      walletCurrencies.textContent = '';
+    }
+    // Render transfer history strip after data is loaded
+    renderTransferHistory();
+  } catch (err) {
+    showToast('Failed to load dashboard data: ' + err.message, 'error');
+  }
+}
+
+async function renderTransferHistory() {
+  try {
+    const res = await apiFetch('/api/transactions/history');
+    const txList = document.getElementById('txList');
+    if (!res || !res.transactions || res.transactions.length === 0) {
+      txList.innerHTML = `<div class="text-center text-[var(--text-muted)] py-8">No transfer history yet</div>`;
+      return;
+    }
+    // Show last 5 transactions
+    const recent = res.transactions.slice(0, 5);
+    let html = '';
+    recent.forEach(tx => {
+      const statusClass = tx.status === 'confirmed' ? 'status-success' : tx.status === 'pending' ? 'status-pending' : 'status-muted';
+      const statusText = tx.status === 'confirmed' ? 'Confirmed' : tx.status === 'pending' ? 'Pending' : 'Cancelled';
+      html += `<div class="flex items-center justify-between p-2 rounded bg-[var(--bg-elev-2)] transition">
+        <div class="flex items-center gap-3">
+          <div class="w-3 h-3 rounded-full ${statusClass}"></div>
+          <span class="text-sm text-[var(--text-primary)]">${tx.asset_symbol}: ${Number(tx.amount).toFixed(4)}</span>
+        </div>
+        <div class="text-right text-xs">
+          <span class="text-[var(--text-muted)]">${new Date(tx.created_at).toLocaleDateString()}</span>
+          <span class="text-[${statusClass === 'status-success' ? '#10B981' : '#F59E0B'}]">${statusText}</span>
+        </div>
+      </div>`;
+    });
+    txList.innerHTML = html;
+  } catch (err) {
+    document.getElementById('txList').innerHTML = `<div class="text-[var(--text-muted)] text-center py-8">Failed to load history</div>`;
+  }
 }
 
 // ============ THEME & NAV ============
