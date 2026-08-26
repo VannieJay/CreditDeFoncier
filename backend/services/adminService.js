@@ -23,10 +23,17 @@ async function setUserActive(userId, active) {
 }
 
 async function completeKyc(userId, fields) {
+  const { rows: user } = await pool.query(
+    'SELECT role FROM users WHERE id = $1',
+    [userId]
+  );
+  if (!user || user.length === 0) return null;
+  const isCorporate = user[0].role === 'corporate';
+
   const kyc = {
     kyc_status: 'verified',
     identity_verified: true,
-    business_registered: true,
+    business_registered: isCorporate ? true : false,
     liquidity_verified: true,
     ...fields,
   };
