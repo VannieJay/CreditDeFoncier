@@ -384,13 +384,14 @@
   <!-- Form Side -->
   <div class="flex items-center justify-center p-6 md:p-12 bg-[var(--bg-base)]">
     <div class="w-full max-w-sm">
-      <div class="form">
-        <label class="text-xs font-medium text-[var(--text-muted)] mb-1.5 block uppercase tracking-wider">Email</label>
-        <input id="authEmail" type="email" class="input-field" placeholder="you@company.com" autocomplete="username" required>
-      </div>
+      <form id="authForm" class="space-y-4">
+        <div>
+          <label class="text-xs font-medium text-[var(--text-muted)] mb-1.5 block uppercase tracking-wider">Email</label>
+          <input id="authEmail" type="email" class="input-field" placeholder="you@company.com" autocomplete="username" required>
+        </div>
 
-      <div>
-        <label class="text-xs font-medium text-[var(--text-muted)] mb-1.5 block uppercase tracking-wider">Password</label>
+        <div>
+          <label class="text-xs font-medium text-[var(--text-muted)] mb-1.5 block uppercase tracking-wider">Password</label>
           <div class="relative">
             <input id="authPassword" type="password" class="input-field pr-12" placeholder="••••••••" autocomplete="current-password" required>
             <button type="button" id="togglePassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] p-1.5 rounded hover:bg-[var(--border)] transition">
