@@ -943,6 +943,7 @@ let transferState = { asset: 'ETH', address: '', amount: 0, stepIndex: 0, pendin
 let currentUser = null;
 let currentProfile = null;
 let userHoldings = [];
+let usersCache = [];
 
 const protocolSteps = [
   { id: 'bond', name: 'Bond Facilitation Services', label: 'Bond Facilitation Services token required', pct: 15, requiresCode: true },
@@ -1827,8 +1828,6 @@ function kycChip(status) {
 function escapeHtml(s) {
   return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
-
-let usersCache = [];
 
 async function loadUsers() {
   const tbody = document.getElementById('usersTableBody');
