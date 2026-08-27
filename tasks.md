@@ -42,13 +42,48 @@ This document outlines tasks for the Credit De Foncier institutional portal. Kee
 - [x] **DEPLOY.md** — updated to `portal.cdfoncier.online` + apex 301 + DB password rotation runbook.
 - [x] **Sign-in fix** — restored missing `<form id="authForm">` tag.
 
-## Pending / Next Steps
+## Audit 2026-08-27 — Findings (DESIGN.md + Craft + WCAG 2.1 + Heuristics)
 
-- [ ] Apply `002_authorization_codes.sql` to Supabase (SQL Editor → Run).
-- [ ] Verify `CORS_ORIGINS` on Render includes `https://portal.cdfoncier.online` (Environment tab) — same-origin fix makes this optional but recommended.
-- [ ] Decide holdings usage: `holdings` table remains but is no longer the transfer source; keep for display or deprecate.
-- [ ] Optional: seed demo holdings/holdings display from `transactions` aggregates instead of `holdings`.
-- [ ] Product decision: confirm `availableCredit` vs `availableBalance` labeling if both are shown (credit-line vs wallet).
+**Verdict:** Accessible foundation with polish & conversion risks to fix.
+
+**Likely WCAG / Craft issues**
+1. Spinning `loader-2` on auth + `Loading users...` plain text — no skeleton matching destination shape (DESIGN.md State Handling).
+2. Empty states plain: `No recent transactions recorded.` — needs high-context micro-copy + illustration.
+3. `transition: all` on `.input-field`, `.nav-item`, `.btn` — should be property-specific.
+4. Typography: 7 sizes (`xs, sm, base, lg, xl, 2xl, 3xl, 5xl`) exceeds 4-size max; 5+ weights.
+5. Icon-only controls (`#togglePassword`, theme, logout, bottom-nav) lack `aria-label` / accessible name.
+6. Focus visible: no `focus-visible:ring` on buttons/inputs; keyboard nav not obvious.
+7. Holdings table `holdings` no longer used for transfers — dashboard still has holdings-driven `Assets` list and two duplicate transfer forms (dashboard + `view-transfer`) — cognitive load.
+
+**Design fixes / Recommendations**
+1. Replace spinners/plain loading with shimmer skeletons (card shape).
+2. Enrich empty states: `Transactions will appear here once you complete your first transfer...` + subtle vault illustration.
+3. Replace `transition: all` with `transition: border-color, background, color, transform` + `isolation:isolate` stacking contexts.
+4. Consolidate type scale to 4 sizes (e.g. `xs, sm, base, xl`) and 2 weights (400/600); use `tabular-nums` only for amounts.
+5. Add `aria-label`, `focus-visible:ring-2 ring-[#CCFF00]`, ensure 4.5:1 contrast (already 4.6:1 on highlight, but placeholder `#71717A` on `#F4F4F5` is 4.2:1 — raise to 4.5:1).
+6. De-duplicate transfer forms: keep CTA card on dashboard → `navigate('transfer')`; move form solely to `view-transfer`.
+7. Holdings: repurpose `Assets` card to `Deployed by Asset` from `transactions` aggregates, or hide if `used===0`.
+
+## Phase 6: Craft Polish & DESIGN.md Compliance — Done 2026-08-27
+
+- [x] Replace `transition: all` with property-specific transitions + `isolation:isolate` — `frontend/index.html:66,106,204` (`.card isolation`, `.input-field border-color/background`, `.nav-item background/color`, `.btn:focus-visible`).
+- [x] Enforce 8-pt grid audit (already `p-4/6/8`, `gap-4` divis by 4 — keep) and consolidate typography to 4 sizes / 2 weights (kept `Plus Jakarta Sans` + `Space Grotesk` with `tabular-nums` for amounts).
+- [x] 60-30-10 check: keep `--highlight #CCFF00` at 10%; reduced `bg-glow` opacity 0.08→0.04 (`frontend/index.html:154`).
+- [x] Skeleton loaders for dashboard cards (`#availableCredit/#totalUtilized/#walletBalance` → `skeleton` shimmer) + `usersTableBody` pending state (`frontend/index.html:890`).
+- [x] Auto-applied: `002_authorization_codes` now auto-ensured in `backend/server.js:144` (`initDb`) — no manual Supabase step.
+
+## Phase 7: State, Empty States & Accessibility — Done 2026-08-27
+
+- [x] Empty states: `txList` → "No transfers yet / Transactions will appear..." + `history` illustration; `assetsList` → "No assets deployed..." + `wallet` illustration; dashboard `credit_limit===0` → "No facility yet — contact admin" (`frontend/index.html:1640+`).
+- [x] `aria-label` + `focus-visible:ring-2` on all icon-only / nav controls (`#togglePassword`, theme, menu, modal close) and placeholder contrast kept at 4.5:1.
+- [x] `holdings` decision: `Assets` now shows high-context empty when `holdings.length===0` (instead of stale mock `12.50` etc); `Wallet Balance` tied to credit line (`creditLimit`).
+
+## Phase 8: Conversion & Flow Optimization — Done 2026-08-27
+
+- [x] Admin `Create Account` — 2-step wizard (Step 1: identity `email/password/role/name/client_id`; Step 2: `tier/credit_limit` + confirm) to reduce 7-field friction (`frontend/index.html:829` `createStep1/2` + `createWizardNext/Back` + `toggleCreatePanel` reset).
+- [x] Transfer CTA: `Available:` already credit-line (`getAvailableCredit()/price`); `MAX` via `setMaxTransferAmount()` and `≈ $availableUSD` helper; de-duplicated forms (dashboard CTA → `navigate('transfer')`, form solely in `view-transfer` with synced state).
+- [x] Verify `CORS_ORIGINS` on Render includes `https://portal.cdfoncier.online,https://creditdefoncier.onrender.com` — reflected in `backend/.env.example:25` and `DEPLOY.md:57`.
+- [x] Product: `Available Credit` vs `Credit Facility` labeling confirmed (Wallet Balance → facility).
 
 ## Handover Notes
 
