@@ -150,6 +150,8 @@ async function initDb() {
     // safety: ensure constraint covers bond/pof/blocked/lc/apg/bg (in case old table existed)
     await pool.query(`ALTER TABLE authorization_codes DROP CONSTRAINT IF EXISTS authorization_codes_service_check`);
     await pool.query(`ALTER TABLE authorization_codes ADD CONSTRAINT authorization_codes_service_check CHECK (service IN ('bond','pof','blocked','lc','apg','bg'))`).catch(()=>{});
+    // fixup: individuals must never carry business registration
+    await pool.query(`UPDATE profiles SET business_registered = false WHERE user_id IN (SELECT id FROM users WHERE role = 'individual') AND business_registered = true`).then(r => { if (r.rowCount) console.log(`Fixed ${r.rowCount} individual profile(s) business flag`); }).catch(()=>{});
   } catch (e) { console.warn('Migration 002 ensure warning:', e.message); }
 }
 

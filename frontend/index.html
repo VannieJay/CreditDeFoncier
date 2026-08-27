@@ -1695,9 +1695,12 @@ async function renderApp() {
 
     const profileIdsEl = document.getElementById('profileIds');
     if (profileIdsEl) {
-      const cId = currentProfile.client_id || 'CL-001';
-      const tId = currentProfile.tax_id || 'TX-MRD-8F3A92K';
-      profileIdsEl.textContent = `${cId} · ${tId}`;
+      // Single ID only — was showing "CL-001 · TX-MRD-..." (mock fallback) for everyone.
+      // Now: show only the real client_id; tax_id is not created via admin and must not fallback to mock.
+      const cId = (currentProfile.client_id || '').trim();
+      // For individuals, never join tax_id; for corporate, only if tax_id actually exists in DB.
+      profileIdsEl.textContent = cId || '—';
+      profileIdsEl.title = cId ? `Client ID: ${cId}` : 'ID pending — ask admin to assign';
     }
 
     const roleBadge = document.getElementById('profileRoleBadge');
@@ -1708,6 +1711,48 @@ async function renderApp() {
     const tierBadge = document.getElementById('profileTierBadge');
     if (tierBadge) {
       tierBadge.textContent = currentProfile.tier || 'Tier 3';
+    }
+
+    // ---- Verification Status (role-aware: business step N/A for individuals) ----
+    const isIndividual = currentUser?.role === 'individual';
+    const idOk = !!currentProfile.identity_verified;
+    const bizOk = !!currentProfile.business_registered;
+    const liqOk = !!currentProfile.liquidity_verified;
+    const setStep = (iconId, badgeId, ok, na) => {
+      const icon = document.getElementById(iconId);
+      const badge = document.getElementById(badgeId);
+      if (!icon || !badge) return;
+      if (na) {
+        icon.className = 'step-circle';
+        icon.style.opacity = '0.4';
+        icon.innerHTML = '<span class="text-xs text-[var(--text-muted)]">—</span>';
+        badge.innerHTML = '<span class="status-dot" style="background: var(--border)"></span> Not Applicable';
+        badge.className = 'text-xs font-medium flex items-center gap-1';
+        badge.style.color = 'var(--text-muted)';
+      } else if (ok) {
+        icon.className = 'step-circle complete';
+        icon.style.opacity = '';
+        icon.innerHTML = '<i data-lucide="check" class="w-4 h-4 text-[#09090B]"></i>';
+        badge.innerHTML = '<span class="status-dot status-success"></span> Verified';
+        badge.className = 'text-xs font-medium flex items-center gap-1';
+        badge.style.color = 'var(--success)';
+      } else {
+        icon.className = 'step-circle active';
+        icon.style.opacity = '';
+        icon.innerHTML = '<div class="w-2 h-2 rounded-full bg-[#CCFF00] animate-pulse"></div>';
+        badge.innerHTML = '<span class="status-dot status-pending"></span> In Review';
+        badge.className = 'text-xs font-medium flex items-center gap-1';
+        badge.style.color = 'var(--warning)';
+      }
+    };
+    setStep('identityStepIcon','identityStatusBadge', idOk, false);
+    setStep('businessStepIcon','businessStatusBadge', bizOk, isIndividual);
+    setStep('liquidityStepIcon','liquidityStatusBadge', liqOk, false);
+    // adjust business description for individuals
+    const bizDesc = document.querySelector('#businessStepIcon')?.closest('.flex')?.querySelector('p');
+    if (bizDesc && isIndividual) {
+      bizDesc.textContent = 'Not required for Individual accounts — identity and liquidity checks apply.';
+      bizDesc.style.opacity = '0.6';
     }
 
   } catch (err) {
