@@ -1,33 +1,32 @@
-- [Webapp Conversion Tasks](tasks.md) — Tasks for converting the HTML portal into a full webapp (all 4 phases complete)
+- [Webapp Conversion Tasks](tasks.md) — Phases 1-5 complete (foundation + credit-line + transfer protocol)
 
 ## Project Structure
 
-**Credit De Foncier** — institutional crypto finance portal (Express + PostgreSQL backend, single-file HTML frontend).
+**Credit De Foncier** — institutional crypto finance portal (Express + PostgreSQL/Supabase, single-file HTML frontend).
 
 ```
 backend/
-  server.js              Entry point (port 4000). CORS, rate-limit, morgan logs,
-                         static serving of ../frontend, SPA fallback, error handler.
-                         Dev mode boots without DB; production exits if DB unreachable.
+  server.js                 Entry (4000). Manual CORS (same-origin always trusted), helmet, rate-limit, morgan, static ../frontend, SPA fallback, error handler. Listens before DB init.
   config/
-    index.js             Env validation (dotenv, required vars).
-    db.js                pg Pool (10s connection timeout).
-    schema.sql           Tables: users, profiles, assets, holdings, transactions.
-    seed.js              Seeds demo user stratos@maritime.dev / Password123!
-  middleware/
-    auth.js              JWT Bearer guard + requireRole.
-    validate.js          express-validator schemas.
-  routes/                auth.js, assets.js, transactions.js, profile.js
-  services/              authService, assetService, transactionService, profileService
+    db.js                   pg Pool (session pooler aws-0-eu-central-1.pooler.supabase.com:5432, 10s timeout)
+    schema.sql              users(role:individual/corporate/admin, active), profiles(credit_limit/utilized), assets, holdings, transactions
+    migrations/002_authorization_codes.sql  authorization_codes(user_id, service, code, used) — no expiry
+    seed.js / createAdmin.js / dropNonAdmins.js
+  middleware/auth.js        JWT Bearer + requireRole
+  middleware/validate.js    express-validator schemas
+  routes/  auth.js, assets.js, transactions.js (+ verify-code, credit-line transfer), profile.js, admin.js (+ auth-code)
+  services/ authService, assetService, transactionService (isAuthUsed/verifyAuthCode), profileService (incrementUtilized), adminService (generateAuthCode, KYC role guard), priceService (CoinGecko 3-min cache)
 frontend/
-  index.html             Single-file app. API client with localStorage JWT (`cdf_token`).
+  index.html                Single-file app. Views: view-dashboard, view-transfer (dedicated), view-profile, adminConsole. Modal: transferProtocolModal with progress bar + sequential code prompts.
 ```
 
 ## Key Facts
 
-- **Run**: `cd backend; npm start` → http://localhost:4000 (port 3000 is taken by another local Vite app)
-- **Demo login**: `stratos@maritime.dev` / `Password123!` (corporate, seeded via `npm run seed`)
-- **API**: `/api/auth/{register,login,me}`, `/api/assets`, `/api/assets/holdings`, `/api/transactions/{transfer,history}`, `/api/profile`
-- **DB not installed locally** — no Postgres/Docker on this machine; SQL paths untested live. Server verified: static serving, health, validation, auth guard, 404s.
-- Express 5 gotcha hit: bare `'*'` wildcard routes throw PathError — use terminal middleware instead.
-- Write/Edit tools resolve relative paths against project root but are inconsistent — prefer verifying file locations after writes.
+- **Live:** `https://portal.cdfoncier.online` (Render `creditdefoncier.onrender.com`; apex `cdfoncier.online` → 301 to portal). Health: `GET /health` → `{"status":"ok","db":"connected"}`.
+- **Admin:** `info@cdfoncier.online` / generated password (stored in Render env; rotate via Supabase → update Render DATABASE_URL). Only `admin` remains in DB; demo `stratos@maritime.dev` removed.
+- **API:** `/api/auth/{login,me}` (register is admin-only), `/api/assets`, `/api/transactions/{transfer,history,verify-code}`, `/api/profile`, `/api/admin/users` (+ `POST /admin/users/:id/auth-code`)
+- **Credit-line model:** `profiles.credit_limit` = pre-approved facility, `utilized` = consumed (USD). `available = credit_limit - utilized`. Transfers consume credit (partial allowed), `incrementUtilized` caps at limit. `Wallet Balance` repurposed to credit-line figure; holdings no longer debited on transfer.
+- **Transfer protocol:** 6 services in fixed order `bond→pof→blocked→lc→apg→bg` (labels: Bond Facilitation Services … Bank Guarantee). Progress milestones ≈15/45/65/78/88/96%; one code prompt at a time; codes 6-digit numeric, single-use, no expiry, verified via `verify-code`; regenerate invalidates prior unused. "Simulate Request to Admin" removed. Transfer requires all 6 `used` before ledger write.
+- **PriceService:** CoinGecko `ethereum,bitcoin,tether` → USD, 3-min TTL, refreshed on `GET /api/assets` and `/health` hook.
+- **Auth:** `cdf_token` in localStorage, 401 auto-logout. CORS: manual middleware — any Origin matching `req.headers.host` is same-origin trusted.
+- **Gotchas:** Express 5 bare `'*'` wildcards throw; frontend uses relative `/api/...` so no origin config needed; PowerShell `&&`/`||` not supported (`; if ($?) {}`); dotenv must load before `config/db.js`.

@@ -84,4 +84,17 @@ router.delete('/users/:id', idParamValidation, handleValidation, async (req, res
   }
 });
 
+router.post('/users/:id/auth-code', async (req, res, next) => {
+  try {
+    const { service } = req.body;
+    if (!service || !['bond', 'pof', 'blocked', 'lc', 'apg', 'bg'].includes(service)) {
+      return res.status(400).json({ error: 'Invalid service' });
+    }
+    const generated = await adminService.generateAuthCode(req.params.id, service);
+    res.json({ code: String(generated.code), service });
+  } catch (err) {
+    next(err);
+  }
+});
+
 module.exports = router;

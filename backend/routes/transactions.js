@@ -1,6 +1,7 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const assetService = require('../services/assetService');
+const profileService = require('../services/profileService');
 const transactionService = require('../services/transactionService');
 const { authenticate } = require('../middleware/auth');
 
@@ -20,33 +21,39 @@ function handleValidation(req, res, next) {
   next();
 }
 
+// Service label map (order matters for sequential code prompts)
+const SERVICES = ['bond', 'pof', 'blocked', 'lc', 'apg', 'bg'];
+
 router.post('/transfer', authenticate, transferValidation, handleValidation, async (req, res, next) => {
   try {
     const { asset, address, amount } = req.body;
+
+    // 1. Require ALL 6 authorizations to be verified for this user before transferring
+    const allUsed = await Promise.all(SERVICES.map(s =>
+      transactionService.isAuthUsed(req.user.id, s)
+    ));
+    if (!allUsed.every(Boolean)) {
+      return res.status(403).json({ error: 'All authorizations required' });
+    }
+
     const assetInfo = await assetService.getAssetBySymbol(asset);
     if (!assetInfo) {
       return res.status(404).json({ error: 'Asset not found' });
     }
 
-    const available = await assetService.getAvailableBalance(req.user.id, asset);
+    const usdValue = amount * parseFloat(assetInfo.price);
 
-    if (available < amount) {
-      return res.status(400).json({
-        error: 'Insufficient balance',
-        required: amount.toFixed(6),
-        available: available.toFixed(6),
-      });
+    // 2. Check available credit: credit_limit - utilized >= usdValue
+    const profile = await profileService.getOrCreateProfile(req.user.id);
+    const availableCredit = Number(profile.credit_limit) - Number(profile.utilized);
+    if (usdValue > availableCredit) {
+      return res.status(403).json({ error: 'Insufficient credit', available: availableCredit.toFixed(2), required: usdValue.toFixed(2) });
     }
 
-    const usdValue = amount * parseFloat(assetInfo.price);
-    const fee = parseFloat(assetInfo.fee);
+    // 3. Increment utilized by usdValue, capped at credit_limit
+    await profileService.incrementUtilized(req.user.id, usdValue);
 
-    // Debit atomically first (guards against concurrent overdrafts),
-    // compensate (credit back) if the ledger write fails.
-    // Note: fee is USD-denominated metadata on the ledger row, not deducted
-    // from the asset-unit balance.
-    await assetService.debitBalance(req.user.id, asset, amount);
-
+    // 4. Create ledger transaction (no holdings debit)
     let tx;
     try {
       tx = await transactionService.createTransaction({
@@ -55,10 +62,11 @@ router.post('/transfer', authenticate, transferValidation, handleValidation, asy
         amount,
         address,
         usdValue,
-        fee,
+        fee: assetInfo.fee,
       });
     } catch (ledgerErr) {
-      await assetService.creditBalance(req.user.id, asset, amount);
+      // Roll back the utilized increment if ledger write fails
+      await profileService.incrementUtilized(req.user.id, -usdValue);
       throw ledgerErr;
     }
 
@@ -84,6 +92,23 @@ router.get('/history', authenticate, async (req, res, next) => {
     const limit = Math.min(parseInt(req.query.limit, 10) || 50, 100);
     const txs = await transactionService.getUserTransactions(req.user.id, limit);
     res.json({ transactions: txs });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Verify a 6-digit code for a given service
+router.post('/verify-code', authenticate, async (req, res, next) => {
+  try {
+    const { service, code } = req.body;
+    if (!service || !SERVICES.includes(service)) {
+      return res.status(400).json({ error: 'Invalid service' });
+    }
+    const valid = await transactionService.verifyAuthCode(req.user.id, service, code);
+    if (!valid) {
+      return res.status(403).json({ error: 'Invalid or already used code' });
+    }
+    res.json({ valid: true });
   } catch (err) {
     next(err);
   }

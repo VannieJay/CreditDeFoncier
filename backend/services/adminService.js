@@ -67,14 +67,20 @@ async function deleteUser(userId) {
   return rowCount > 0;
 }
 
-async function getUserWithProfile(userId) {
-  const { rows } = await pool.query(
-    `SELECT u.id, u.email, u.role, u.active, p.name
-       FROM users u LEFT JOIN profiles p ON p.user_id = u.id
-      WHERE u.id = $1`,
-    [userId]
+async function generateAuthCode(userId, service) {
+  // Delete any prior unused code for this (user, service) so each user
+  // has at most one live code per service (acts as manual revoke).
+  await pool.query(
+    `DELETE FROM authorization_codes WHERE user_id = $1 AND service = $2 AND used = false`,
+    [userId, service]
   );
-  return rows[0] || null;
+  const code = Math.floor(100000 + Math.random() * 900000); // 6-digit numeric
+  await pool.query(
+    `INSERT INTO authorization_codes (user_id, service, code, used, created_at)
+     VALUES ($1, $2, $3, false, now())`,
+    [userId, service, code]
+  );
+  return { code, used: false };
 }
 
-module.exports = { listUsers, setUserActive, completeKyc, deleteUser, getUserWithProfile };
+module.exports = { listUsers, setUserActive, completeKyc, deleteUser, getUserWithProfile, generateAuthCode };

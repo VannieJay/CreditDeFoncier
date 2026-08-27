@@ -41,4 +41,15 @@ async function updateProfile(userId, fields) {
   return rows[0] || null;
 }
 
-module.exports = { getOrCreateProfile, updateProfile };
+async function incrementUtilized(userId, usdValue) {
+  const { rows } = await pool.query('SELECT credit_limit, utilized FROM profiles WHERE user_id = $1', [userId]);
+  if (!rows.length) return null;
+  const cur = Number(rows[0].utilized) || 0;
+  const limit = Number(rows[0].credit_limit) || 0;
+  const next = Math.min(cur + Number(usdValue), limit);
+  // also allow negative delta for rollback (usdValue negative)
+  const clamped = next < 0 ? 0 : next;
+  return updateProfile(userId, { utilized: clamped });
+}
+
+module.exports = { getOrCreateProfile, updateProfile, incrementUtilized };
