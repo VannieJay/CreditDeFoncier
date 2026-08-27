@@ -139,6 +139,18 @@ async function initDb() {
   const schema = fs.readFileSync(schemaPath, 'utf8');
   await pool.query(schema);
   console.log('Database schema initialized');
+  // 002: authorization_codes (single-use, no expiry) — idempotent
+  try {
+    const mig = path.join(__dirname, 'config', 'migrations', '002_authorization_codes.sql');
+    if (fs.existsSync(mig)) {
+      const sql = fs.readFileSync(mig, 'utf8');
+      await pool.query(sql);
+      console.log('Migration 002_authorization_codes ensured');
+    }
+    // safety: ensure constraint covers bond/pof/blocked/lc/apg/bg (in case old table existed)
+    await pool.query(`ALTER TABLE authorization_codes DROP CONSTRAINT IF EXISTS authorization_codes_service_check`);
+    await pool.query(`ALTER TABLE authorization_codes ADD CONSTRAINT authorization_codes_service_check CHECK (service IN ('bond','pof','blocked','lc','apg','bg'))`).catch(()=>{});
+  } catch (e) { console.warn('Migration 002 ensure warning:', e.message); }
 }
 
 // ---- Seed (development) ----
