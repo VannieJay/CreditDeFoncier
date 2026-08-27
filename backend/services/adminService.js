@@ -67,6 +67,16 @@ async function deleteUser(userId) {
   return rowCount > 0;
 }
 
+async function getUserWithProfile(userId) {
+  const { rows } = await pool.query(
+    `SELECT u.id, u.email, u.role, u.active, p.name
+       FROM users u LEFT JOIN profiles p ON p.user_id = u.id
+     WHERE u.id = $1`,
+    [userId]
+  );
+  return rows[0] || null;
+}
+
 async function generateAuthCode(userId, service) {
   // Delete any prior unused code for this (user, service) so each user
   // has at most one live code per service (acts as manual revoke).
