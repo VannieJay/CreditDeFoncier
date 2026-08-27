@@ -1360,7 +1360,8 @@ function validateTransfer() {
   lucide.createIcons();
 }
 
-document.getElementById('initiateTransferBtn').addEventListener('click', startTransferProtocol);
+const initBtn = document.getElementById('initiateTransferBtn');
+if (initBtn) initBtn.addEventListener('click', startTransferProtocol);
 const initBtn2 = document.getElementById('initiateTransferBtn2');
 if (initBtn2) initBtn2.addEventListener('click', startTransferProtocol);
 
