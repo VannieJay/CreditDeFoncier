@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Co-host mode: adds creditdefoncier.com alongside the existing wa-transfer
+# VM (140.238.79.76). Preserves the Ollama gateway on :8080
+# (ollama-gateway.conf) and wa-transfer on :3001. Safe to re-run.
 set -euo pipefail
 
 echo "[1/6] system packages"
@@ -32,10 +35,11 @@ pm2 start /opt/creditdefoncier/oci/ecosystem.config.js || pm2 restart creditdefo
 pm2 save
 pm2 startup systemd 2>&1 | tail -n +2
 
-echo "[5/6] nginx"
+echo "[5/6] nginx — add creditdefoncier vhost alongside existing ollama-gateway.conf (:8080) and wa-transfer (:3001)"
 sudo cp /opt/creditdefoncier/oci/nginx.conf /etc/nginx/sites-available/creditdefoncier
 sudo ln -sf /etc/nginx/sites-available/creditdefoncier /etc/nginx/sites-enabled/creditdefoncier
-sudo rm -f /etc/nginx/sites-enabled/default
+sudo rm -f /etc/nginx/sites-enabled/default  # already gone per OLLAMA_GATEWAY.md:12
+echo "Active sites:"; ls -1 /etc/nginx/sites-enabled/
 sudo nginx -t && sudo systemctl reload nginx
 sudo systemctl enable nginx
 

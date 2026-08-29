@@ -5,7 +5,7 @@
 - **App URL:** `https://creditdefoncier.com` (no VPN block — non-Cloudflare, international `.com`)
 - **Domain:** `creditdefoncier.com` at **Cloudflare Registrar** (US, $10.44/yr at-cost, free WHOIS privacy; renewal = same price; WHOIS shows Cloudflare, not Nigeria)
 - **DNS:** Cloudflare, **A record grey-cloud (DNS-only, proxy OFF)** → OCI public IP. **Never orange-cloud** — proxying would reintroduce the Cloudflare/VPN block.
-- **API + static frontend:** single **OCI Always Free VM** (`eu-frankfurt-1`, Ampere A1) running the Express app (`backend/server.js` serves `../frontend/index.html` + `/api/*` on one origin)
+- **API + static frontend:** OCI VM **co-hosted on the existing `wa-transfer` box `140.238.79.76`** (x86_64, 2 CPU / 11 GB; Ollama gateway on `:8080`, `wa-transfer` on `:3001`) running the Express app on `:4000` via `pm2` + a new `nginx` vhost (`backend/server.js` serves `../frontend/index.html` + `/api/*` on one origin). The original plan for a dedicated Frankfurt VM (`eu-frankfurt-1`) is deferred — co-hosting keeps cost at $0.
 - **Database:** Supabase PostgreSQL (session pooler, `eu-central-1`)
 - **Prices:** CoinGecko live rates cached 3 min (`services/priceService.js`)
 - **Keep-alive:** **required on OCI Always Free** — external pinger + DB heartbeat prevent Oracle idle reclaim *and* Supabase pause
@@ -19,7 +19,7 @@
 
 Have these ready so the VM build isn't blocked:
 
-1. **OCI account** (card required, but stays $0): sign up at <https://cloud.oracle.com/free>, choose **home region `eu-frankfurt-1` (Frankfurt)** at signup — it cannot be changed later. If Frankfurt shows "no Always Free capacity" at VM creation, fall back to `us-ashburn-1`, `uk-london-1`, or `us-phoenix-1` (always pick a non-Nigeria region so the IP geo is EU/US).
+1. **OCI tenancy** — re-use the existing **wa-transfer tenancy** (VM `140.238.79.76`). No new account/region needed. If you later need a dedicated box, choose **home region `eu-frankfurt-1` (Frankfurt)** at signup — it cannot be changed.
 2. **Cloudflare account + domain:** buy `creditdefoncier.com` at Cloudflare Registrar ($10.44, free privacy). WHOIS privacy is redacted by default — confirm it's on.
 3. **Supabase `DATABASE_URL`:** Supabase dashboard → **Connect** → **Session pooler** (port 5432) → copy the full URI (it embeds the current password, e.g. `postgresql://postgres.lbxyl...@aws-0-eu-central-1.pooler.supabase.com:5432/postgres`). Do **not** hand-type the password — copy.
 4. **JWT secret:** generate via `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"` (rotating invalidates all existing sessions).
@@ -52,19 +52,21 @@ Have these ready so the VM build isn't blocked:
 
 ## 2. OCI Always Free VM (core)
 
-### 2.1 Create the VM
+### 2.1 VM — co-host on the existing wa-transfer box
+
+No new VM. Re-use `ubuntu@140.238.79.76` (x86_64, 2 CPU / 11 GB). It already hosts the Ollama gateway (`:8080`, `OLLAMA_GATEWAY.md:2`) and `wa-transfer` (Docker `:3001`, `docker-compose.yml:86`). Current live use is ~6 GB (Ollama `qwen2.5:7b`) — adding Credit De Foncier (+450 MB, `oci/ecosystem.config.js:7`) brings the box to ~6.5–8.5 GB, leaving headroom. Monitor with `free -h` / `docker stats`.
 
 | Setting | Value |
 |---|---|
-| Region | `eu-frankfurt-1` (or your chosen home region fallback) |
-| Image | **Canonical Ubuntu 24.04** (minimal) |
-| Shape | **VM.Standard.A1.Flex** — **1 OCPU / 6 GB RAM** (or 2 OCPU / 12 GB total if you split across two VMs; stay ≤ Always Free 2 OCPU / 12 GB) |
-| VCN | create new VCN with internet gateway + public subnet |
-| Public IP | **Reserve** a public IP (so it doesn't change on reboot) |
-| Boot volume | 47 GB (minimum; 200 GB Always Free) |
-| SSH | add your public key at creation |
+| Host | `140.238.79.76` (existing) |
+| Existing services | Ollama gateway `:8080`, `wa-transfer` `:3001` (Docker), Redis `:6379` |
+| New service | Credit De Foncier `:4000` (pm2) + nginx vhost `:80` → `:443` after certbot |
+| Public IP | already reserved on the VCN; confirm it hasn't changed |
+| Boot volume | existing 47 GB |
 
-**Network:** Security List → Ingress Rules → allow `0.0.0.0/0` TCP **80** and **443** (and 22 for your IP, or 0.0.0.0/0 temporarily).
+**Network:** Security List on the VCN already allows `8080` for Ollama (see `OLLAMA_GATEWAY.md:41`). Add `0.0.0.0/0` TCP **80** and **443** if not present (OCI Console → VCN → Security Lists → Ingress). Keep `22` restricted to your IP.
+
+> Dedicated Frankfurt VM (`eu-frankfurt-1`, Ampere A1) remains the fallback if this box ever needs isolation — provision a second Always Free VM only if `free -h` shows sustained pressure.
 
 ### 2.2 First-login provisioning (run on the VM)
 
