@@ -9,7 +9,7 @@
 - **Database:** Supabase PostgreSQL (session pooler, `eu-central-1`)
 - **Prices:** CoinGecko live rates cached 3 min (`services/priceService.js`)
 - **Keep-alive:** **required on OCI Always Free** — external pinger + DB heartbeat prevent Oracle idle reclaim *and* Supabase pause
-- **Previous host:** `portal.cdfoncier.online` / `creditdefoncier.onrender.com` on Render remains as **fallback** until cutover is verified. DNS records for `cdfoncier.online` should stay on Cloudflare or be decommissioned after cutover.
+- **Previous host:** `portal.cdfoncier.online` / `creditdefoncier.onrender.com` on Render — **decommissioned** after cutover. Delete the custom domain in Render (Settings → Custom Domains) and the Hostinger apex 301 / Afternic `cdfoncier.online` records; `cdfoncier.online` is not used.
 
 > **Why not `cdfoncier.online`?** That domain's nameservers were pointed at Afternic parking (`ns1.afternic.com`), causing the `NXDOMAIN` you saw. A brand-new `.com` at Cloudflare Registrar avoids it entirely.
 
