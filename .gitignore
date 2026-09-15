@@ -12,6 +12,8 @@ npm-debug.log*
 
 # Local tooling
 .claude/
+.vercel/
+.wrangler/
 
 # OS / editor noise
 .DS_Store

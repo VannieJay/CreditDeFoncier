@@ -87,6 +87,8 @@ This document outlines tasks for the Credit De Foncier institutional portal. Kee
 
 ## Handover Notes
 
+- **LIVE (2026-09-15):** https://creditdefoncier.com - Cloudflare Pages (static) + Pages Functions proxy -> Render free API (`creditdefoncier.onrender.com`) + Supabase. Keep-alive: Cloudflare Worker cron every 10 min. Runbook: `cloudflare/README.md`. (The `portal.cdfoncier.online` / OCI lines below are historical; the OCI VM was reclaimed when Oracle free trial ended 2026-09-15.)
+
 - **Live URL:** `https://portal.cdfoncier.online` (Render `creditdefoncier.onrender.com` + Hostinger apex 301).
 - **Admin:** `info@cdfoncier.online` (Supabase `users` role `admin`).
 - **Env:** Render `DATABASE_URL` must match current Supabase pooler password; Supabase Connect → Session pooler → copy URI.

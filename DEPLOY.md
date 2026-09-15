@@ -1,4 +1,14 @@
-# Deployment Guide — OCI Always Free + Supabase + Cloudflare Registrar
+# Deployment Guide - Credit De Foncier
+
+> **CURRENT PRODUCTION TOPOLOGY (2026-09-15).** Click-by-click runbook: `cloudflare/README.md`.
+>
+> - **Front door:** **Cloudflare Pages** serves `frontend/` statically at https://creditdefoncier.com (global CDN, always on, free tier allows commercial use).
+> - **API:** **Cloudflare Pages Functions** - `functions/api/[[path]].js` and `functions/health.js` - proxy `/api/*` and `/health` to the **Render free** service https://creditdefoncier.onrender.com, which runs the current Express app on `main`. The proxy strips `Origin`, so the API same-origin CORS middleware never has to authorise a cross-origin call.
+> - **Database:** Supabase PostgreSQL (eu-central-1, session pooler :5432) - unchanged.
+> - **Keep-alive:** **Cloudflare Worker** cron (`cloudflare/keepalive-worker.js`, `*/10 * * * *`) pings `/health`, so the Render free instance (spins down after 15 idle minutes) never cold-starts. 750 free instance-hours/month is ~730 h, i.e. 24/7.
+> - **Alerts:** an external uptime monitor must keyword-check `"db":"connected"` - the 2026-09-15 outage went unnoticed for hours.
+> - **DECOMMISSIONED 2026-09-15:** the OCI VM `140.238.79.76` (section 2 below is historical). Oracle free trial ended 2026-09-15 03:46 UTC and the instance was an x86 2 CPU / 11 GB shape, which is NOT an Always Free shape, so it was reclaimed - along with the co-hosted `wa-transfer`, Ollama gateway (:8080) and Redis. Remove the stale `A 140.238.79.76` record from Cloudflare DNS.
+> - **Not used for production:** the Vercel project `credit-de-foncier` (Hobby is licensed for non-commercial use only) and the retired portal.cdfoncier.online.
 
 ## Architecture (current)
 
@@ -50,7 +60,9 @@ Have these ready so the VM build isn't blocked:
 
 ---
 
-## 2. OCI Always Free VM (core)
+## 2. OCI Always Free VM (core) - DECOMMISSIONED 2026-09-15 (HISTORICAL)
+
+> The instance was reclaimed when the free trial ended; nothing below is live. See cloudflare/README.md for the current stack.
 
 ### 2.1 VM — co-host on the existing wa-transfer box
 

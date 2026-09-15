@@ -22,6 +22,10 @@ frontend/
 
 ## Key Facts
 
+- **LIVE (2026-09-15) - free production stack:** Cloudflare Pages serves the portal statically at https://creditdefoncier.com; Cloudflare Pages Functions (`functions/api/[[path]].js`, `functions/health.js`) proxy `/api/*` and `/health` to the Render free web service `creditdefoncier.onrender.com` (current Express app on `main`); Supabase PostgreSQL (`eu-central-1`, pooler :5432) holds the data; a Cloudflare Worker cron (`cloudflare/keepalive-worker.js`, every 10 min) keeps Render warm. Runbook: `cloudflare/README.md`.
+- **Proxy rule:** the Pages Function deletes `Origin`/`Referer` before calling the API because `CORS_ORIGINS` on Render still lists the retired OCI domain; with no Origin the API treats the call as server-to-server and allows it (verified 2026-09-15: no Origin -> 200, `Origin: https://creditdefoncier.com` -> 403).
+- **OCI decommissioned 2026-09-15:** free trial ended 03:46 UTC and the x86 2 CPU / 11 GB instance (not an Always Free shape) was reclaimed together with `wa-transfer`, Ollama :8080 and Redis. The Vercel project `credit-de-foncier` is unused (Hobby = non-commercial only).
+
 - **Live (new):** `https://creditdefoncier.com` at Cloudflare Registrar (US, $10.44/yr, free WHOIS privacy — no Nigeria in lookup) → **OCI Always Free VM** `eu-frankfurt-1` (Ampere A1, grey-cloud DNS-only, **never orange-cloud**). Previous `portal.cdfoncier.online` / `creditdefoncier.onrender.com` (Render) is fallback until cutover; `cdfoncier.online` had Afternic NXDOMAIN — new `.com` avoids it.
 - **DB/Infra:** Supabase PostgreSQL pooler `eu-central-1` (server-side only, not VPN-affecting). Prices via CoinGecko 3-min cache. OCI VM always-on (real VM, no sleep) but **requires a pinger** to avoid 7-day idle reclaim (see DEPLOY.md §2.3).
 - **Admin:** `info@cdfoncier.online` / generated password (stored in VM `backend/.env` `JWT_SECRET`/`DATABASE_URL`; rotate via Supabase → update VM `.env` + `pm2 restart`). Only `admin` remains in DB; demo `stratos@maritime.dev` removed.

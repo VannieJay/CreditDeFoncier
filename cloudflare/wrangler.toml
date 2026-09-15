@@ -1,0 +1,12 @@
+# Keep-alive Worker for the Render free API (see keepalive-worker.js).
+# Deploy from this folder with:  npx wrangler deploy
+name = "creditdefoncier-keepalive"
+main = "keepalive-worker.js"
+compatibility_date = "2026-09-15"
+
+# Every 10 minutes (Render free spins down after 15 minutes idle).
+[triggers]
+crons = ["*/10 * * * *"]
+
+[vars]
+HEALTH_URL = "https://creditdefoncier.com/health"

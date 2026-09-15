@@ -1,0 +1,8 @@
+# Security headers for the static portal served by Cloudflare Pages.
+# The API responses get their own Helmet headers from Express.
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=()
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
