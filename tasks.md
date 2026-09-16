@@ -5,8 +5,10 @@ metadata:
 
 ## 2026-09-16 — Workers model cutover (in progress)
 - [x] Convert Cloudflare front door from Pages-Functions layout to **Workers Static Assets**: `worker.js` + `wrangler.jsonc` committed; `functions/`, `frontend/_routes.json`, `frontend/_headers` removed (non-interactive `wrangler deploy` ignored them → 404s).
-- [ ] User: attach `creditdefoncier.com` + `www` to Worker `credit-de-foncier` (Settings → Domains & Routes).
-- [ ] Verify: `https://credit-de-foncier.info-vanniejay.workers.dev/health`, `/api/assets`, login; then domain; then keep-alive Worker returns ok.
+- [x] User: attach `creditdefoncier.com` + `www` to Worker `credit-de-foncier` (Domains tab → Add Domain). Note: the old `www CNAME` DNS record had to be deleted from the zone first (Cloudflare custom domains refuse externally-managed hostnames).
+- [x] Verified 2026-09-16: apex + www both live — `/health` = `{"status":"ok","db":"connected"}`, portal 200 (94,965 B), `/api/assets` live prices, login route 400 on bad creds. DB (Supabase) confirmed connected in production.
+- [ ] User: UptimeRobot monitor(s) on `https://creditdefoncier.com/health` (keyword `db":"connected`, alert when NOT exists, 5 min) + optional front-end monitor.
+- [ ] Optional: UptimeRobot API key saved to backend/.env for CLI management.
 - [x] Keep-alive Worker `creditdefoncier-keepalive` deployed with cron `*/10 * * * *`.
 
   type: project
