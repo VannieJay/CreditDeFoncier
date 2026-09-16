@@ -1,3 +1,12 @@
+## 2026-09-16 UPDATE (Workers model cutover)
+- Cloudflare front door is a **Workers (Static Assets)** project `credit-de-foncier` (temp URL `https://credit-de-foncier.info-vanniejay.workers.dev`), deployed by the dashboard's Git build via `npx wrangler deploy`.
+- API proxy moved from Pages `functions/` → **`worker.js`** + **`wrangler.jsonc`** (`run_worker_first: ["/api/*","/health"]`); Pages-only `frontend/_routes.json` and `frontend/_headers` deleted. Reason: the non-interactive build ignored `functions/` (wizards answered "no"), leaving /api & /health 404.
+- Pending user steps: attach `creditdefoncier.com` + `www` to the **Worker** (Settings → Domains & Routes); keep-alive Worker `creditdefoncier-keepalive` already deployed with cron `*/10 * * * *`.
+- Render: fresh account (info.vanniejay@gmail.com) is card-gated (API 402); existing service `creditdefoncier.onrender.com` remains the healthy API origin — no card needed for the current design.
+
+---
+
+
 - [Webapp Conversion Tasks](tasks.md) — Phases 1-5 complete (foundation + credit-line + transfer protocol)
 
 ## Project Structure

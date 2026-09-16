@@ -1,0 +1,27 @@
+// Cloudflare Workers (Static Assets) configuration for the Credit De Foncier portal.
+//
+// Deployed via Cloudflare Workers Builds (the dashboard's "Connect to Git" flow,
+// which runs `npx wrangler deploy`). This file is committed so the non-interactive
+// build never falls back to its wizard defaults (which previously dropped the
+// Pages-style functions/ directory and left /api and /health returning 404).
+//
+// - assets: the static portal is served from frontend/ by the CDN (free, unlimited).
+// - run_worker_first: ONLY /api/* and /health invoke the Worker script (worker.js),
+//   which proxies them to the Render-hosted Express API. Static requests never
+//   consume the Worker request quota.
+// - not_found_handling: unknown static paths fall back to index.html (SPA).
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "credit-de-foncier",
+  "compatibility_date": "2026-09-15",
+  "main": "worker.js",
+  "observability": {
+    "enabled": true
+  },
+  "assets": {
+    "directory": "frontend",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*", "/health"]
+  }
+}

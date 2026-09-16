@@ -2,6 +2,13 @@
 name: webapp-conversion-tasks
 description: Tasks for converting the HTML portal into a full webapp
 metadata:
+
+## 2026-09-16 — Workers model cutover (in progress)
+- [x] Convert Cloudflare front door from Pages-Functions layout to **Workers Static Assets**: `worker.js` + `wrangler.jsonc` committed; `functions/`, `frontend/_routes.json`, `frontend/_headers` removed (non-interactive `wrangler deploy` ignored them → 404s).
+- [ ] User: attach `creditdefoncier.com` + `www` to Worker `credit-de-foncier` (Settings → Domains & Routes).
+- [ ] Verify: `https://credit-de-foncier.info-vanniejay.workers.dev/health`, `/api/assets`, login; then domain; then keep-alive Worker returns ok.
+- [x] Keep-alive Worker `creditdefoncier-keepalive` deployed with cron `*/10 * * * *`.
+
   type: project
 ---
 

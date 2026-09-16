@@ -1,3 +1,21 @@
+# CREDIT DE FONCIER — DEPLOYMENT (Workers model, current as of 2026-09-16)
+
+**The `credit-de-foncier` front door on Cloudflare is a Workers (Static Assets) project, NOT Cloudflare Pages.**
+
+- Static portal: `frontend/` served by the CDN via `wrangler.jsonc` → `assets.directory`.
+- API + health: `worker.js` (invoked only for `/api/*` and `/health` via `run_worker_first`)
+  proxies to the Render-hosted Express app `https://creditdefoncier.onrender.com`,
+  stripping `Origin`/`Referer` so the API's CORS allow-list is bypassed.
+- The earlier `functions/` (Pages Functions) layout is REMOVED — the dashboard's
+  Git-build runs `npx wrangler deploy` non-interactively and ignored it (404s on /api & /health).
+- Temp URL: `https://credit-de-foncier.info-vanniejay.workers.dev`. Custom domains:
+  attach `creditdefoncier.com` + `www` to the **Worker** (Settings → Domains & Routes).
+
+---
+
+# CREDIT DE FONCIER — DEPLOYMENT (older context)
+
+
 # Deployment Guide - Credit De Foncier
 
 > **CURRENT PRODUCTION TOPOLOGY (2026-09-15).** Click-by-click runbook: `cloudflare/README.md`.

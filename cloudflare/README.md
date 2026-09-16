@@ -1,3 +1,18 @@
+# Credit De Foncier — Cloudflare Free Stack Runbook
+
+> **MODEL CHANGE (2026-09-16):** the project was created via the dashboard's
+> "Connect to Git" flow, which deploys with `npx wrangler deploy` — i.e. a
+> **Workers (Static Assets)** project, not classic Pages. The Pages-style
+> `functions/` directory was therefore removed. The API proxy now lives in
+> **`worker.js`**, wired up by **`wrangler.jsonc`** (`run_worker_first` for
+> `/api/*` and `/health`, everything else served from `frontend/` by the CDN).
+> The proxy logic itself is unchanged and all instructions below still apply
+> except: custom domains are attached on the **Worker** (Settings →
+> Domains & Routes), and `frontend/_headers` was removed (security headers for
+> proxied responses are set in `worker.js`; static-asset headers can be added
+> via the dashboard if ever needed).
+
+
 # Free production stack - Cloudflare Pages front door + Render API + keep-alive
 
 ## Architecture (current)
