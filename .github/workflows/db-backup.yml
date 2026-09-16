@@ -1,0 +1,57 @@
+name: DB backup
+
+# Free automated backup for the Supabase PostgreSQL database.
+# Runs daily at 03:30 UTC (right after the 03:00 pg_cron heartbeat) and on demand.
+#
+# The dump is a custom-format pg_dump archive (compressed). It is uploaded as a
+# GitHub Actions ARTIFACT only - it is never committed (this repository is
+# public; committing user data would be a privacy incident). Artifacts are
+# visible/downloadable only to repository admins via the Actions tab.
+#
+# Free-tier fit: GitHub Actions minutes are free for public repos; artifact
+# storage up to the free 500 MB quota (a dump this size is a few KB).
+#
+# Restore (anywhere with PostgreSQL 15+ installed):
+#   pg_restore --clean --if-exists -d "<target postgresql url>" cdf-db-YYYY-MM-DD.dump
+
+on:
+  schedule:
+    - cron: '30 3 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install PostgreSQL client
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+
+      - name: pg_dump
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          set -euo pipefail
+          test -n "$DATABASE_URL" || { echo "DATABASE_URL secret missing"; exit 1; }
+          STAMP=$(date -u +%Y-%m-%d)
+          pg_dump --format=custom --no-owner --no-privileges \
+            --file "cdf-db-${STAMP}.dump" "$DATABASE_URL"
+          ls -lh "cdf-db-${STAMP}.dump"
+          echo "BACKUP_FILE=cdf-db-${STAMP}.dump" >> "$GITHUB_ENV"
+
+      - name: Sanity check the dump is non-empty and lists tables
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          pg_restore --list "$BACKUP_FILE" | grep -E 'TABLE (public )?(users|transactions|assets|authorization_codes)' || {
+            echo "Dump is missing expected tables - failing the backup"; exit 1; }
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.BACKUP_FILE }}
+          path: ${{ env.BACKUP_FILE }}
+          retention-days: 30
+          if-no-files-found: error
